@@ -1,0 +1,80 @@
+{
+  "version": "1",
+  "kind": "bootstrap",
+  "scope": "seed-packs",
+  "executionTarget": "server",
+  "description": "Seed four pack products tied to song_1: Studio ($10.99), Platinum ($39.99), Diamond ($69.99), Legend ($99.99)",
+  "targetEnvironments": ["draft"],
+  "bootstrapType": "deployment-idempotent",
+  "actors": {
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc"
+  },
+  "steps": [
+    { "op": "as", "who": "admin" },
+    {
+      "op": "setMany",
+      "writes": [
+        {
+          "path": "packs/pack_studio",
+          "data": {
+            "name": "Studio Pack",
+            "packSku": "pack_studio",
+            "songId": "song_1",
+            "nftCount": 1,
+            "tokenAmount": 2000000,
+            "artistPayout": 758,
+            "platformSlice": 110,
+            "priceUsd": 1099,
+            "priceSol": 64588235,
+            "sortIndex": 1
+          }
+        },
+        {
+          "path": "packs/pack_platinum",
+          "data": {
+            "name": "Platinum Pack",
+            "packSku": "pack_platinum",
+            "songId": "song_1",
+            "nftCount": 2,
+            "tokenAmount": 3000000,
+            "artistPayout": 2759,
+            "platformSlice": 400,
+            "priceUsd": 3999,
+            "priceSol": 235058824,
+            "sortIndex": 2
+          }
+        },
+        {
+          "path": "packs/pack_diamond",
+          "data": {
+            "name": "Diamond Pack",
+            "packSku": "pack_diamond",
+            "songId": "song_1",
+            "nftCount": 3,
+            "tokenAmount": 6000000,
+            "artistPayout": 4829,
+            "platformSlice": 700,
+            "priceUsd": 6999,
+            "priceSol": 411470588,
+            "sortIndex": 3
+          }
+        },
+        {
+          "path": "packs/pack_legend",
+          "data": {
+            "name": "Legend Pack",
+            "packSku": "pack_legend",
+            "songId": "song_1",
+            "nftCount": 5,
+            "tokenAmount": 10000000,
+            "artistPayout": 6899,
+            "platformSlice": 1000,
+            "priceUsd": 9999,
+            "priceSol": 587647059,
+            "sortIndex": 4
+          }
+        }
+      ]
+    }
+  ]
+}

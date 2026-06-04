@@ -1,0 +1,641 @@
+{
+  "info": {
+    "title": "API",
+    "version": "1.0.0",
+    "generatedAt": "2026-06-04T02:59:01.978Z"
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "description": "Health check",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth/callback",
+      "description": "OAuth callback",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/social-links/:provider",
+      "description": "Get social link",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/social-links/:provider",
+      "description": "Unlink social account",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/webhooks/shopify/status",
+      "description": "Get recent purchase records (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/songs/:songId/access",
+      "description": "Check token-gated access to song audio",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/songs/:songId/stream",
+      "description": "Token-gated audio redirect — returns 302 to CDN URL for full access, 401 for preview",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/songs/:songId/buy",
+      "description": "Rate-limited pre-flight for bonding curve buys (max 10/min per wallet)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/songs/:songId/holders",
+      "description": "Get token holder count for a song via Solana RPC",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchases/claim-token",
+      "description": "Get a wallet-bound claim token by proving email ownership of a purchase (requires authentication)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchases/by-order/:orderId",
+      "description": "Look up pack purchases by Shopify order ID (authenticated — own purchases only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/purchases/claim/:purchaseId",
+      "description": "Claim purchased tokens with verified claim token and email. For pending_wallet pack purchases, runs full fulfillment pipeline.",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/editions/purchase",
+      "description": "Fulfill a collectible edition purchase — authenticates buyer, validates edition availability, then mints NFT and transfers bundled SPL token to buyer via backend vault",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/og/song/:songId",
+      "description": "Returns an HTML page with Open Graph meta tags for social share previews of a song. Crawlers get OG tags; humans are redirected to the SPA.",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/packs/checkout",
+      "description": "Generate Shopify checkout URL for a pack + song combination",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/packs/checkout/open-amount",
+      "description": "Create Shopify draft order for pay-what-you-want amount",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/validate-checkout",
+      "description": "Validate that a song exists before checkout",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/packs",
+      "description": "List available pack tiers with pricing and SKU info",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/webhooks/packs/fulfill",
+      "description": "Shopify pack order webhook - validates HMAC, fulfills pack purchases by minting NFTs and airdropping tokens",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/webhooks/packs/status",
+      "description": "View recent pack purchases (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/artists/:artistAddress/verify",
+      "description": "Set or unset artist verification status (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/payouts/retry/:purchaseId",
+      "description": "Retry a failed or pending artist SOL payout for a specific pack purchase (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/payouts/pending",
+      "description": "List pack purchases with pending, failed, or retrying artist SOL payouts (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/operations/balance",
+      "description": "Monitor operations wallet balance and fulfillment costs (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/full",
+      "description": "Full system health check — returns status of all critical dependencies",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/purchases/recent",
+      "description": "Returns the last 10 purchase records (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/packs/config",
+      "description": "Returns the current pack tier configuration",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/token-price",
+      "description": "SOL/USD price (no mint param) or token-specific USD/SOL price (with ?mint=). Fallback chain: pump.fun → DexScreener → Jupiter V2 → CoinMarketCap",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/swap/quote",
+      "description": "Proxy Jupiter quote API for swap quotes",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/swap/transaction",
+      "description": "Proxy Jupiter swap API for swap transactions",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/purchases/pending",
+      "description": "List pending pack purchases awaiting wallet addresses (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/fulfill-manual",
+      "description": "Manually fulfill a pending pack purchase with a provided wallet address (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/fulfill-new",
+      "description": "Create and fulfill a new pack purchase for an order that missed the webhook (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/sync-to-chain",
+      "description": "Sync songs from offchain database to onchain collection using vault wallet (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/packs/dry-run",
+      "description": "Dry-run test of pack fulfillment pipeline for all tiers (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/transaction-audits",
+      "description": "List all transaction audit records ordered by createdAt desc (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/webhook-failures",
+      "description": "List recent webhook verification failures (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/shopify/order/:orderNumber",
+      "description": "Fetch a single Shopify order by order number via Admin API (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/shopify/recent-orders",
+      "description": "List recent Shopify orders cross-referenced with our packPurchases DB (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/auto-fulfill-by-order",
+      "description": "Auto-fulfill a stuck order by fetching pack SKU and email from Shopify and running the fulfillment pipeline (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/fulfill-by-shopify-id",
+      "description": "Fulfill a stuck order by its internal Shopify order ID (not order number) — fetches from Shopify and runs fulfillment pipeline (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/repair/:purchaseId",
+      "description": "Resume a partial pack purchase: re-runs only the failed steps using paymentReconciliation state (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/:id/resume",
+      "description": "Retry failed fulfillment steps for a stuck purchase using v20 step flags. Admin only.",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/:id/reenqueue",
+      "description": "Re-enqueue a stuck pack purchase into the durable pack-fulfillment queue consumer (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/:id/cancel",
+      "description": "Tombstone-cancel a pack purchase record — sets status=cancelled with audit fields (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/purchases/:id",
+      "description": "Tombstone-cancel a single pack purchase record (sets status=cancelled, does not hard-delete — admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-sol-purchase",
+      "description": "Verify an on-chain direct SOL purchase tx and run v20 fulfillment pipeline with 1.5% fan bonus",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/failed-fulfillments",
+      "description": "List all unresolved failed fulfillment records (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/retry-fulfillment",
+      "description": "Retry a failed fulfillment by re-running the failed steps. On success, sets resolvedAt. Admin only.",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/failed-fulfillments/:fulfillmentId",
+      "description": "Delete a failedFulfillments record (admin manually resolved offline). Admin only.",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "description": "Health check — returns vault address, SOL balance, network (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/wallet-status",
+      "description": "Wallet status — operations wallet balance and PDA info (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/pending-orders",
+      "description": "List of pending pack purchases awaiting fulfillment (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/fulfill",
+      "description": "Manual fulfillment of a pack purchase order (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/pending-songs",
+      "description": "List all song submissions pending admin approval (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/approve",
+      "description": "Approve a song submission — optionally override launch mode and create onchain token if auto (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/reject",
+      "description": "Reject a song submission with a reason — sends email notification if artistEmail is set (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/request-changes",
+      "description": "Request changes on a song submission — sends email notification if artistEmail is set (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/set-approved",
+      "description": "Simple approval toggle for a song (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/set-paused",
+      "description": "Pause/unpause a song (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/set-hidden",
+      "description": "Hide/unhide a song from public listings (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/songs/:songId/set-swap-eligible",
+      "description": "Toggle swap eligibility for a song (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/artists/ensure-wallet",
+      "description": "Create or retrieve a Privy embedded Solana wallet for the authenticated artist and persist it to their profile",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/wallet/:address/tokens",
+      "description": "Scan all SPL token accounts for a wallet and return non-zero balances",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/songs/:songId/stream",
+      "description": "Record a song stream",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/songs/:songId/sell",
+      "description": "Get a sell quote or execute a vault sell for song tokens",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/songs/:songId/simulate-buy",
+      "description": "Pre-flight simulation for bonding curve buys — checks graduation and SOL balance",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/purchases/:purchaseId/recover-trapped-tokens",
+      "description": "Recovery: direct SPL transfer of trapped tokens from vault to buyer for a needs_review/partial_failure purchase where tokenAmount=0. Admin only.",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/songs/:mint/holders",
+      "description": "Fetch real on-chain token holders for a mint via Helius DAS getTokenAccounts. Returns top 20 holders with balance and percentage.",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/songs/:mint/candles",
+      "description": "OHLC candles for a song token. Primary: pump.fun. Fallback: synthetic candles from priceHistory snapshots",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/stream-analytics",
+      "description": "Stream analytics aggregated data (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/support/ticket",
+      "description": "Submit a support or DMCA ticket",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/support/ticket/:id",
+      "description": "Update a support ticket (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/error-log",
+      "description": "Log an error from frontend or backend",
+      "authentication": {
+        "required": false
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/error-log/:id/resolve",
+      "description": "Mark an error log as resolved (admin only)",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/like",
+      "description": "Create a like notification for the song creator",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/follow",
+      "description": "Create a follow notification for the artist",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/repost",
+      "description": "Create a repost notification for the song creator",
+      "authentication": {
+        "required": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/chat/messages",
+      "description": "Create a chat message with content moderation and rate limiting",
+      "authentication": {
+        "required": true
+      }
+    }
+  ]
+}

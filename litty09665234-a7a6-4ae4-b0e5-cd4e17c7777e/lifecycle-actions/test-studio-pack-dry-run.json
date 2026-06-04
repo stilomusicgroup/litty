@@ -1,0 +1,190 @@
+{
+  "version": "1",
+  "name": "Dry run: Studio Pack end-to-end purchase + payout flow (v15)",
+  "description": "Validates the complete Studio Pack ($10.99) purchase lifecycle using v15 tokenomics values: $7.58 artist payout, $1.10 platform slice (10%), ~$0.11 treasury fee (1%), 1 NFT, 2M song tokens. Simulates Shopify webhook pack purchase, artist SOL payout, infra fee transfer, treasury fee transfer, and final completion status. Runs on draft only — never executes against live.",
+  "targetEnvironments": ["draft"],
+  "actors": {
+    "vault": "9LLTjsWhYJBxFgca43MQtrLLsPcxWMR86NoxAHGsBUCk",
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "artist": "EJahnaDmV7HEwMLZuocBRiHJoyPTEcmDCZTCj5MM1XoK",
+    "buyer": "9qWb7X688UsT3aRRoRMDeFTy56bTYGXHzmvus7DVbMGz"
+  },
+  "steps": [
+    {
+      "op": "mock",
+      "pluginCall": "@PumpFunPlugin.createToken",
+      "returns": true
+    },
+    {
+      "op": "mock",
+      "pluginCall": "@TokenPlugin.transfer",
+      "returns": true
+    },
+    {
+      "op": "as",
+      "who": "vault"
+    },
+    {
+      "op": "set",
+      "path": "songs/song_studio_dryrun",
+      "data": {
+        "name": "Dry Run Track",
+        "symbol": "DRY1",
+        "uri": "https://example.com/dry-run-track.json",
+        "creator": "$artist"
+      }
+    },
+    {
+      "op": "set",
+      "path": "songDetails/song_studio_dryrun",
+      "data": {
+        "approved": true,
+        "artist": "Dry Run Artist",
+        "artistAddress": "$artist",
+        "audioUrl": "https://example.com/dry-run-track.mp3",
+        "coverImage": "https://example.com/dry-run-cover.png",
+        "genre": "electronic",
+        "title": "Dry Run Track",
+        "currentEditionCount": 0,
+        "totalEditions": 100,
+        "streamRequirement": 0,
+        "hasNft": false
+      }
+    },
+    {
+      "op": "as",
+      "who": "admin"
+    },
+    {
+      "op": "set",
+      "path": "packs/pack_studio_dryrun",
+      "data": {
+        "name": "Studio Pack",
+        "priceUsd": 1099,
+        "priceSol": 64588235,
+        "artistPayout": 758,
+        "platformSlice": 110,
+        "nftCount": 1,
+        "tokenAmount": 2000000,
+        "sortIndex": 1
+      }
+    },
+    {
+      "op": "as",
+      "who": "vault"
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_dryrun_001",
+      "data": {
+        "status": "pending_wallet",
+        "packId": "pack_studio_dryrun",
+        "packName": "Studio Pack",
+        "songId": "song_studio_dryrun",
+        "buyerAddress": "$buyer",
+        "buyerEmail": "dryrun@litstudio.test",
+        "shopifyOrderId": "dryrun-order-9999",
+        "artistPayout": 758,
+        "nftCount": 1,
+        "tokenAmount": 2000000,
+        "platformSlice": 110,
+        "createdAt": 1713500000,
+        "creatorFeeBps": 150,
+        "platformFeeBps": 1000,
+        "treasuryFeeBps": 100,
+        "nftRoyaltyBps": 1000
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).status == 'pending_wallet'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).packId == 'pack_studio_dryrun'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).buyerEmail == 'dryrun@litstudio.test'"
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_dryrun_001/payouts/payout_dry_001",
+      "data": {
+        "recipient": "$artist",
+        "solAmt": 50000000
+      }
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_dryrun_001/infraFees/infra_dry_001",
+      "data": {
+        "recipient": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+        "solAmt": 7000000
+      }
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_dryrun_001/treasuryFees/treasury_dry_001",
+      "data": {
+        "recipient": "GWWQr5yVPnCH9Y8zToy69SK4LvLPhogLTPSx8AJK3UF9",
+        "solAmt": 700000
+      }
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_dryrun_001",
+      "data": {
+        "status": "completed",
+        "packId": "pack_studio_dryrun",
+        "packName": "Studio Pack",
+        "songId": "song_studio_dryrun",
+        "buyerAddress": "$buyer",
+        "buyerEmail": "dryrun@litstudio.test",
+        "shopifyOrderId": "dryrun-order-9999",
+        "artistPayout": 758,
+        "nftCount": 1,
+        "tokenAmount": 2000000,
+        "platformSlice": 110,
+        "createdAt": 1713500000,
+        "creatorFeeBps": 150,
+        "platformFeeBps": 1000,
+        "treasuryFeeBps": 100,
+        "nftRoyaltyBps": 1000,
+        "artistPayoutStatus": "paid",
+        "artistPayoutTxHash": "5KtPmXqBfE7k3HvW9nJ2Ry4GcLdM8sZaPqXvNwTuF1oE3rYbCjHkLmNpQrStUvWx",
+        "artistPayoutUSD": 758,
+        "artistPayoutSOL": 50000000,
+        "solPriceAtPurchase": 15000
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).status == 'completed'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).artistPayoutStatus == 'paid'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).packId == 'pack_studio_dryrun'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).songId == 'song_studio_dryrun'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).buyerEmail == 'dryrun@litstudio.test'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).artistPayout == 758"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_dryrun_001).platformSlice == 110"
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "version": "1",
+  "name": "Reconciler short-circuits when airdropCompleted is already true",
+  "actors": {
+    "Vault": "9LLTjsWhYJBxFgca43MQtrLLsPcxWMR86NoxAHGsBUCk",
+    "Admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "Buyer": "9ptb8XwJTurU8vWRd2CZphNmJJfTVu52Y6gN3vJ7KUhq"
+  },
+  "steps": [
+    {
+      "op": "as",
+      "who": "Vault"
+    },
+
+    {
+      "op": "set",
+      "path": "songs/rcnskipsong01",
+      "data": {
+        "name": "Reconciler Skip Test Song",
+        "symbol": "$RSKIP",
+        "uri": "https://arweave.net/recon-skip-meta",
+        "creator": "$Admin"
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/rcnskippurchase01",
+      "data": {
+        "status": "pending_insufficient_funds",
+        "songId": "rcnskipsong01",
+        "packId": "pack-recon-skip",
+        "packName": "Reconciler Skip Pack",
+        "shopifyOrderId": "order-recon-skip-001",
+        "buyerEmail": "buyer@test.com",
+        "buyerAddress": "$Buyer",
+        "tokenAmount": 500000,
+        "nftCount": 0,
+        "platformSlice": 0,
+        "artistPayout": 0,
+        "createdAt": 1778630400,
+        "airdropCompleted": true,
+        "treasuryTransferCompleted": true,
+        "infraFeeAccounted": true,
+        "fundingFeeAccounted": true,
+        "stepTokens": true,
+        "stepPayout": true,
+        "stepNft": true,
+        "stepNotify": true,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": false,
+        "swapTxSig": "existingswapsig001",
+        "bondingCurveBuyId": "existingbcbuy001",
+        "artistTokenTxHash": "existingartisttx001",
+        "solPriceAtPurchaseUsd": 150000000,
+        "purchaseAmountUsd": 10.0
+      }
+    },
+
+    {
+      "op": "mock",
+      "pluginCall": "@TokenPlugin.transfer",
+      "returns": true
+    },
+
+    {
+      "op": "set",
+      "path": "songs/rcnskipsong01/airdrops/airdrop001",
+      "data": {
+        "recipient": "$Buyer",
+        "amount": 500000
+      }
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/rcnskippurchase01).airdropCompleted == true"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/rcnskippurchase01).stepTokens == true"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/rcnskippurchase01).treasuryTransferCompleted == true"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/rcnskippurchase01).infraFeeAccounted == true"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/rcnskippurchase01).fundingFeeAccounted == true"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/songs/rcnskipsong01/airdrops/airdrop001) != null"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/songs/rcnskipsong01/airdrops/airdrop001).amount == 500000"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/songs/rcnskipsong01/airdrops/airdrop002) == null"
+    },
+
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/rcnskippurchase01).status == 'pending_insufficient_funds'"
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "version": "1",
+  "name": "Test pack purchase and payout flow",
+  "actors": {
+    "vault": "CwvFcr4BP6Vumk8RjoBWot8DuW8qaRDjqBdAD6GgCS2d",
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "artist": "2x8k3Kfpw83KM7XXr8L7s79FrNDNQfFHC6Ev4asU5JHn",
+    "buyer": "HuEbCj5rUYnNwsDXf1TBzUnZw27U4V2pxCHDG2tVB84E",
+    "otherArtist": "CeuEbit1JWcENrGQey5BwwfbH1YmNkkiFiypTUZ2nUFN"
+  },
+  "steps": [
+    {
+      "op": "as",
+      "who": "vault"
+    },
+    {
+      "op": "set",
+      "path": "songs/song_test_purchase",
+      "data": {
+        "name": "Test Track",
+        "symbol": "TEST1",
+        "uri": "https://example.com/test-track.json",
+        "creator": "$artist"
+      }
+    },
+    {
+      "op": "as",
+      "who": "admin"
+    },
+    {
+      "op": "set",
+      "path": "packs/pack_test_studio",
+      "data": {
+        "name": "Test Studio Pack",
+        "artistPayout": 758,
+        "nftCount": 0,
+        "platformSlice": 110,
+        "priceSol": 64588235,
+        "priceUsd": 1099,
+        "tokenAmount": 2000000,
+        "sortIndex": 1
+      }
+    },
+    {
+      "op": "as",
+      "who": "vault"
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_test_001",
+      "data": {
+        "artistPayout": 690,
+        "buyerAddress": "$buyer",
+        "buyerEmail": "buyer@test.com",
+        "createdAt": 1713500000,
+        "nftCount": 1,
+        "packId": "pack_test_studio",
+        "packName": "Test Studio Pack",
+        "platformSlice": 30,
+        "shopifyOrderId": "test-order-4567",
+        "status": "pending",
+        "tokenAmount": 1500000,
+        "songId": "song_test_purchase",
+        "solPriceAtPurchase": 17000,
+        "creatorFeeBps": 690,
+        "platformFeeBps": 100,
+        "nftRoyaltyBps": 500
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).status == 'pending'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).buyerEmail == 'buyer@test.com'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).artistPayout == 690"
+    },
+    {
+      "op": "as",
+      "who": "vault"
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_test_001",
+      "data": {
+        "artistPayout": 690,
+        "buyerAddress": "$buyer",
+        "buyerEmail": "buyer@test.com",
+        "createdAt": 1713500000,
+        "nftCount": 1,
+        "packId": "pack_test_studio",
+        "packName": "Test Studio Pack",
+        "platformSlice": 30,
+        "shopifyOrderId": "test-order-4567",
+        "status": "completed",
+        "tokenAmount": 1500000,
+        "songId": "song_test_purchase",
+        "solPriceAtPurchase": 17000,
+        "creatorFeeBps": 690,
+        "platformFeeBps": 100,
+        "nftRoyaltyBps": 500,
+        "artistPayoutStatus": "paid",
+        "artistPayoutTxHash": "5KtPmXqBfE7k3HvW9nJ2Ry4GcLdM8sZaPqXvNwTuF1oE3rYbCjHkLmNpQrStUvWx"
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).status == 'completed'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).artistPayoutStatus == 'paid'"
+    },
+    {
+      "op": "as",
+      "who": "admin"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).packId == 'pack_test_studio'"
+    },
+    {
+      "op": "as",
+      "who": "artist"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001).songId == 'song_test_purchase'"
+    },
+    {
+      "op": "as",
+      "who": "otherArtist"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001) == null"
+    },
+    {
+      "op": "as",
+      "who": "buyer"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/packPurchases/purchase_test_001) == null"
+    },
+    {
+      "op": "as",
+      "who": "buyer"
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_test_hack",
+      "data": {
+        "artistPayout": 999999,
+        "buyerAddress": "$buyer",
+        "buyerEmail": "hacker@evil.com",
+        "createdAt": 1713500000,
+        "nftCount": 100,
+        "packId": "pack_test_studio",
+        "packName": "Test Studio Pack",
+        "platformSlice": 0,
+        "shopifyOrderId": "fake-order",
+        "status": "completed",
+        "tokenAmount": 999999
+      },
+      "shouldFail": true
+    },
+    {
+      "op": "as",
+      "who": "admin"
+    },
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_test_001",
+      "data": {
+        "artistPayout": 690,
+        "buyerAddress": "$buyer",
+        "buyerEmail": "buyer@test.com",
+        "createdAt": 1713500000,
+        "nftCount": 1,
+        "packId": "pack_test_studio",
+        "packName": "Test Studio Pack",
+        "platformSlice": 30,
+        "shopifyOrderId": "test-order-4567",
+        "status": "completed",
+        "tokenAmount": 1500000,
+        "songId": "song_test_purchase",
+        "solPriceAtPurchase": 17000,
+        "creatorFeeBps": 690,
+        "platformFeeBps": 100,
+        "nftRoyaltyBps": 500,
+        "artistPayoutStatus": "paid",
+        "artistPayoutTxHash": "5KtPmXqBfE7k3HvW9nJ2Ry4GcLdM8sZaPqXvNwTuF1oE3rYbCjHkLmNpQrStUvWx"
+      },
+      "shouldFail": true
+    },
+    {
+      "op": "as",
+      "who": "buyer"
+    },
+    {
+      "op": "set",
+      "path": "users/HuEbCj5rUYnNwsDXf1TBzUnZw27U4V2pxCHDG2tVB84E",
+      "data": {
+        "displayName": "TestBuyer",
+        "email": "buyer@test.com",
+        "walletAddress": "$buyer"
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/users/HuEbCj5rUYnNwsDXf1TBzUnZw27U4V2pxCHDG2tVB84E).displayName == 'TestBuyer'"
+    },
+    {
+      "op": "as",
+      "who": "vault"
+    },
+    {
+      "op": "set",
+      "path": "users/card_buyer_001",
+      "data": {
+        "displayName": "CardBuyer",
+        "email": "card@buyer.com",
+        "walletAddress": "6zyMSkgGKrPDs4upKEpt7C9daTr3x5ycSJ5PM7b3w6TS"
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/users/card_buyer_001).email == 'card@buyer.com'"
+    }
+  ]
+}

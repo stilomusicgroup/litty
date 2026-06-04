@@ -1,0 +1,151 @@
+{
+  "version": "1",
+  "name": "Regression: Shopify webhook duplicate-purchase idempotency (2026-05-18 fix)",
+  "description": "Guards against regressions where a Shopify webhook retry would double-create a packPurchases record or trigger a duplicate airdrop. Tests four invariants: (1) DETERMINISTIC-ID — the vault can create a packPurchase at a deterministic path derived from orderId+packId and read it back with correct fields. (2) UNIQUENESS-BY-PATH — the Tarobase create rule (get(/packPurchases/$purchaseId)==null) prevents any actor from creating a second document at the SAME path once one exists; the second create attempt is policy-blocked (shouldFail:true). This is the core idempotency fence — concurrent webhook retries that both map to the same path cannot both succeed. (3) UPDATE-SAFE — the vault CAN update the existing record (status, airdropCompleted, etc.) as fulfillment progresses; reconcileAttempts and step flags must be writable. (4) AIRDROP-ONCE — the songsAirdrops collection has update:false, so a second write to the same airdrop path is blocked (shouldFail:true), preventing double-token-sends. A regression that removes the get()==null create rule would cause invariant 2 (shouldFail create) to unexpectedly succeed. A regression that randomises purchaseIds would allow two concurrent retries to create distinct paths, bypassing the uniqueness fence. Note: document IDs use underscores (not hyphens) because the DSL expression parser treats hyphens as minus operators and cannot parse them in get() path arguments.",
+  "actors": {
+    "vault": "9LLTjsWhYJBxFgca43MQtrLLsPcxWMR86NoxAHGsBUCk",
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "buyer": "Dx5Rqv9X4HsNDvP4zhxDcaxfXU9jqE1b48zs7Ev2H5BD"
+  },
+  "steps": [
+    { "op": "mock", "pluginCall": "@TokenPlugin.transfer", "returns": true },
+    { "op": "mock", "pluginCall": "@PumpFunPlugin.createToken", "returns": true },
+    { "op": "mock", "pluginCall": "@TokenPlugin.getTokenMintAddress", "returns": "FakeMint111111111111111111111111111111111111" },
+
+    { "op": "as", "who": "vault" },
+
+    {
+      "op": "set",
+      "path": "songs/song_dup_idem",
+      "data": {
+        "name": "Idempotency Test Track",
+        "symbol": "IDEM",
+        "uri": "https://example.com/idempotency-test.json",
+        "creator": "$buyer"
+      }
+    },
+
+    { "op": "expect", "expr": "get(/songs/song_dup_idem).name == 'Idempotency Test Track'" },
+
+    { "op": "as", "who": "vault" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/duptest_studio_88888",
+      "data": {
+        "status": "pending",
+        "packId": "studio",
+        "packName": "Open Amount Pack",
+        "songId": "song_dup_idem",
+        "buyerAddress": "$buyer",
+        "buyerEmail": "dup-test@regression.test",
+        "shopifyOrderId": "regression-dup-88888",
+        "artistPayout": 0,
+        "nftCount": 0,
+        "tokenAmount": 0,
+        "platformSlice": 30,
+        "createdAt": 1748000100,
+        "walletSource": "shopify",
+        "purchaseAmountUsd": 10.0,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": false,
+        "swapTxSig": "",
+        "bondingCurveBuyId": "",
+        "artistTokenTxHash": ""
+      }
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888) != null" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).shopifyOrderId == 'regression-dup-88888'" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).packId == 'studio'" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).status == 'pending'" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).createdAt == 1748000100" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/duptest_studio_88888",
+      "data": {
+        "status": "pending",
+        "packId": "studio",
+        "packName": "Open Amount Pack",
+        "songId": "song_dup_idem",
+        "buyerAddress": "$buyer",
+        "buyerEmail": "dup-test@regression.test",
+        "shopifyOrderId": "regression-dup-88888",
+        "artistPayout": 0,
+        "nftCount": 0,
+        "tokenAmount": 0,
+        "platformSlice": 30,
+        "createdAt": 1748000200,
+        "walletSource": "shopify",
+        "purchaseAmountUsd": 10.0,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": false,
+        "swapTxSig": "",
+        "bondingCurveBuyId": "",
+        "artistTokenTxHash": ""
+      },
+      "shouldFail": true
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).createdAt == 1748000100" },
+
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).status == 'pending'" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/duptest_studio_88888",
+      "data": {
+        "status": "completed",
+        "packId": "studio",
+        "packName": "Open Amount Pack",
+        "songId": "song_dup_idem",
+        "buyerAddress": "$buyer",
+        "buyerEmail": "dup-test@regression.test",
+        "shopifyOrderId": "regression-dup-88888",
+        "artistPayout": 0,
+        "nftCount": 0,
+        "tokenAmount": 90000000,
+        "platformSlice": 30,
+        "createdAt": 1748000100,
+        "walletSource": "shopify",
+        "purchaseAmountUsd": 10.0,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": true,
+        "swapTxSig": "duptest_swap_001",
+        "bondingCurveBuyId": "duptest_bcb_001",
+        "artistTokenTxHash": "duptest_artist_001",
+        "airdropCompleted": true,
+        "stepTokens": true,
+        "stepPayout": true
+      }
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).status == 'completed'" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).airdropCompleted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).swapTxSig == 'duptest_swap_001'" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).createdAt == 1748000100" },
+
+    {
+      "op": "set",
+      "path": "songs/song_dup_idem/airdrops/airdrop_dup_idem_001",
+      "data": {
+        "recipient": "$buyer",
+        "amount": 90000000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "songs/song_dup_idem/airdrops/airdrop_dup_idem_001",
+      "data": {
+        "recipient": "$buyer",
+        "amount": 90000000
+      },
+      "shouldFail": true
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).airdropCompleted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/duptest_studio_88888).status == 'completed'" }
+  ]
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <rect width="180" height="180" fill="#000000" rx="36"/>
+  <rect x="6" y="6" width="168" height="168" fill="#080512" rx="30"/>
+  <!-- Music note -->
+  <path d="M67 56 L67 113 Q67 124 56 124 Q45 124 45 113 Q45 102 56 102 Q61 102 67 106 L67 75 L113 64 L113 101 Q113 112 102 112 Q91 112 91 101 Q91 90 102 90 Q107 90 113 94 L113 68 Z" fill="url(#ga)"/>
+  <defs>
+    <linearGradient id="ga" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D946EF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <text x="90" y="158" font-family="system-ui, sans-serif" font-size="16" font-weight="700" fill="#8B5CF6" text-anchor="middle" letter-spacing="3">LIT</text>
+</svg>

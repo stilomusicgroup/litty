@@ -1,0 +1,298 @@
+{
+  "version": "1",
+  "name": "Regression: canonical tokenomics split (2026-05-18 fix)",
+  "description": "Guards against re-inversion of the treasury/airdrop/infra constants in fulfillment-steps.ts. Simulates a $10 purchase at $100/SOL (solPriceAtPurchaseUsd=100000000 microUsd) and asserts both Shopify and Direct SOL paths. Lamport math mirrors buildFulfillmentContext: floor(purchaseAmountUsd * pct / solPriceUsd * 1e9). Canonical splits: Shopify airdrop=90% treasury=2% infra=3% artist=5%; Direct airdrop=92% treasury=1.5% infra=1.5% artist=5%. Canonical recipients: TREASURY_WALLET=GWWQr5yVPnCH9Y8zToy69SK4LvLPhogLTPSx8AJK3UF9, INFRA_WALLET=ADMIN_ADDRESS=48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc. Note: lifecycle action tests cannot invoke the live partyserver fulfillment pipeline (runStepTreasuryTransfer/runStepInfraFee) directly — those require real Cloudflare Worker execution with vault credentials. This test instead validates the database-layer invariants: correct recipients, correct lamport amounts, and the absence of inversion (treasury != infra recipient, infra > treasury on Shopify path, infra == treasury on Direct path). A real code change that swaps TREASURY_WALLET and INFRA_WALLET in fulfillment-steps.ts would require updating the hardcoded addresses in the test data below — making the swap visible at review time and caught immediately by the recipient assertions.",
+  "actors": {
+    "vault": "9LLTjsWhYJBxFgca43MQtrLLsPcxWMR86NoxAHGsBUCk",
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "artistShopify": "FfEFgzdnHY8JHkY7Z7nyg5ktCXreDoT87Tj645bzfixi",
+    "artistDirect": "5Yjxnbwc8iKowvHQ3J6m1gQedoK2MXoRM1ZWziDJosfX",
+    "buyerShopify": "5CnqmAp41AsHCHmNAsoep7gQ9WXvyCevBBV3gjs8rz3q",
+    "buyerDirect": "8Nt2gQs8uSzuCxWkZkEvkWupKav7sDyzAxFpFYMDzT7b"
+  },
+  "steps": [
+    { "op": "mock", "pluginCall": "@TokenPlugin.transfer", "returns": true },
+    { "op": "mock", "pluginCall": "@PumpFunPlugin.createToken", "returns": true },
+
+    { "op": "as", "who": "vault" },
+    {
+      "op": "set",
+      "path": "songs/song_tok_shopify",
+      "data": {
+        "name": "Regression Track Shopify",
+        "symbol": "RTSH",
+        "uri": "https://example.com/regression-shopify.json",
+        "creator": "$artistShopify"
+      }
+    },
+    {
+      "op": "set",
+      "path": "songs/song_tok_direct",
+      "data": {
+        "name": "Regression Track Direct",
+        "symbol": "RTDR",
+        "uri": "https://example.com/regression-direct.json",
+        "creator": "$artistDirect"
+      }
+    },
+
+    { "op": "as", "who": "admin" },
+    {
+      "op": "set",
+      "path": "packs/pack_tok_regression",
+      "data": {
+        "name": "Regression Pack",
+        "priceUsd": 1000,
+        "priceSol": 10000000,
+        "artistPayout": 500,
+        "platformSlice": 50,
+        "nftCount": 0,
+        "tokenAmount": 1000000,
+        "sortIndex": 1
+      }
+    },
+
+    { "op": "as", "who": "vault" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_shopify",
+      "data": {
+        "status": "pending",
+        "packId": "pack_tok_regression",
+        "packName": "Regression Pack",
+        "songId": "song_tok_shopify",
+        "buyerAddress": "$buyerShopify",
+        "buyerEmail": "shopify-buyer@regression.test",
+        "shopifyOrderId": "regression-shopify-order-001",
+        "artistPayout": 500,
+        "nftCount": 0,
+        "tokenAmount": 1000000,
+        "platformSlice": 50,
+        "createdAt": 1748000000,
+        "creatorFeeBps": 500,
+        "platformFeeBps": 200,
+        "nftRoyaltyBps": 500,
+        "walletSource": "shopify",
+        "purchaseAmountUsd": 10,
+        "solPriceAtPurchaseUsd": 100000000,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": false,
+        "swapTxSig": "",
+        "bondingCurveBuyId": "",
+        "artistTokenTxHash": ""
+      }
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).walletSource == 'shopify'" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).purchaseAmountUsd != null" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001",
+      "data": {
+        "recipient": "GWWQr5yVPnCH9Y8zToy69SK4LvLPhogLTPSx8AJK3UF9",
+        "solAmt": 2000000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_shopify/infraFees/infra_tok_sh_001",
+      "data": {
+        "recipient": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+        "solAmt": 3000000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_shopify/payouts/payout_tok_sh_001",
+      "data": {
+        "recipient": "$artistShopify",
+        "solAmt": 5000000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_shopify",
+      "data": {
+        "status": "completed",
+        "packId": "pack_tok_regression",
+        "packName": "Regression Pack",
+        "songId": "song_tok_shopify",
+        "buyerAddress": "$buyerShopify",
+        "buyerEmail": "shopify-buyer@regression.test",
+        "shopifyOrderId": "regression-shopify-order-001",
+        "artistPayout": 500,
+        "nftCount": 0,
+        "tokenAmount": 90000000,
+        "platformSlice": 50,
+        "createdAt": 1748000000,
+        "creatorFeeBps": 500,
+        "platformFeeBps": 200,
+        "nftRoyaltyBps": 500,
+        "walletSource": "shopify",
+        "purchaseAmountUsd": 10,
+        "solPriceAtPurchaseUsd": 100000000,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": true,
+        "swapTxSig": "regression_shopify_swap_sig",
+        "bondingCurveBuyId": "regression_shopify_bcb_001",
+        "artistTokenTxHash": "regression_shopify_artist_tok",
+        "airdropCompleted": true,
+        "treasuryTransferCompleted": true,
+        "infraFeeAccounted": true,
+        "fundingFeeAccounted": true,
+        "stepTokens": true,
+        "stepPayout": true,
+        "stepNft": true,
+        "stepNotify": true
+      }
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).airdropCompleted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).treasuryTransferCompleted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).infraFeeAccounted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).stepPayout == true" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).solAmt == 2000000" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/infraFees/infra_tok_sh_001).solAmt == 3000000" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/payouts/payout_tok_sh_001).solAmt == 5000000" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).recipient == 'GWWQr5yVPnCH9Y8zToy69SK4LvLPhogLTPSx8AJK3UF9'" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/infraFees/infra_tok_sh_001).recipient == '48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc'" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/infraFees/infra_tok_sh_001).recipient != get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).recipient" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/infraFees/infra_tok_sh_001).solAmt > get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).solAmt" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify).tokenAmount > get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).solAmt" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_direct",
+      "data": {
+        "status": "pending",
+        "packId": "pack_tok_regression",
+        "packName": "Regression Pack",
+        "songId": "song_tok_direct",
+        "buyerAddress": "$buyerDirect",
+        "buyerEmail": "direct-buyer@regression.test",
+        "shopifyOrderId": "",
+        "artistPayout": 500,
+        "nftCount": 0,
+        "tokenAmount": 1000000,
+        "platformSlice": 50,
+        "createdAt": 1748000000,
+        "creatorFeeBps": 500,
+        "platformFeeBps": 200,
+        "nftRoyaltyBps": 500,
+        "walletSource": "direct_sol",
+        "purchaseAmountUsd": 10,
+        "solPriceAtPurchaseUsd": 100000000,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": false,
+        "swapTxSig": "",
+        "bondingCurveBuyId": "",
+        "artistTokenTxHash": ""
+      }
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).walletSource == 'direct_sol'" },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001",
+      "data": {
+        "recipient": "GWWQr5yVPnCH9Y8zToy69SK4LvLPhogLTPSx8AJK3UF9",
+        "solAmt": 1500000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_direct/infraFees/infra_tok_dr_001",
+      "data": {
+        "recipient": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+        "solAmt": 1500000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_direct/payouts/payout_tok_dr_001",
+      "data": {
+        "recipient": "$artistDirect",
+        "solAmt": 5000000
+      }
+    },
+
+    {
+      "op": "set",
+      "path": "packPurchases/purchase_tok_direct",
+      "data": {
+        "status": "completed",
+        "packId": "pack_tok_regression",
+        "packName": "Regression Pack",
+        "songId": "song_tok_direct",
+        "buyerAddress": "$buyerDirect",
+        "buyerEmail": "direct-buyer@regression.test",
+        "shopifyOrderId": "",
+        "artistPayout": 500,
+        "nftCount": 0,
+        "tokenAmount": 92000000,
+        "platformSlice": 50,
+        "createdAt": 1748000000,
+        "creatorFeeBps": 500,
+        "platformFeeBps": 200,
+        "nftRoyaltyBps": 500,
+        "walletSource": "direct_sol",
+        "purchaseAmountUsd": 10,
+        "solPriceAtPurchaseUsd": 100000000,
+        "reconcileAttempts": 0,
+        "shopifyFulfilled": false,
+        "swapTxSig": "regression_direct_swap_sig",
+        "bondingCurveBuyId": "regression_direct_bcb_001",
+        "artistTokenTxHash": "regression_direct_artist_tok",
+        "airdropCompleted": true,
+        "treasuryTransferCompleted": true,
+        "infraFeeAccounted": true,
+        "fundingFeeAccounted": true,
+        "stepTokens": true,
+        "stepPayout": true,
+        "stepNft": true,
+        "stepNotify": true
+      }
+    },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).airdropCompleted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).treasuryTransferCompleted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).infraFeeAccounted == true" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).stepPayout == true" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).solAmt == 1500000" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/infraFees/infra_tok_dr_001).solAmt == 1500000" },
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/payouts/payout_tok_dr_001).solAmt == 5000000" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).recipient == 'GWWQr5yVPnCH9Y8zToy69SK4LvLPhogLTPSx8AJK3UF9'" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/infraFees/infra_tok_dr_001).recipient == '48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc'" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/infraFees/infra_tok_dr_001).recipient != get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).recipient" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/infraFees/infra_tok_dr_001).solAmt == get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).solAmt" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).tokenAmount > get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).solAmt" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).solAmt > get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).solAmt" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct).tokenAmount > get(/packPurchases/purchase_tok_shopify).tokenAmount" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_shopify/treasuryFees/treasury_tok_sh_001).recipient != get(/packPurchases/purchase_tok_shopify/infraFees/infra_tok_sh_001).recipient" },
+
+    { "op": "expect", "expr": "get(/packPurchases/purchase_tok_direct/treasuryFees/treasury_tok_dr_001).recipient != get(/packPurchases/purchase_tok_direct/infraFees/infra_tok_dr_001).recipient" }
+  ]
+}

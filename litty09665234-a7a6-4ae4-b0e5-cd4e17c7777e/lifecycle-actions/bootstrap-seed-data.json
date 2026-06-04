@@ -1,0 +1,86 @@
+{
+  "version": "1",
+  "kind": "bootstrap",
+  "scope": "seed-data",
+  "executionTarget": "server",
+  "description": "Seed data for Lit Studios - 6 artists and 6 songs with details",
+  "targetEnvironments": ["draft"],
+  "bootstrapType": "seed-data",
+  "actors": {
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "artist1": "DeZJ8XPytsX9Up4zp1wsqu151UJGxozPAcbFxJfpyXjY",
+    "artist2": "4D556ZQp7cXNLnfoAB2rDkVim94bdHDoc6hLdcV8TbLH",
+    "artist3": "GgAuFcizGrLRMfV4Gn54kVQmo2opUo2CEmyW8b38qGBt",
+    "artist4": "3QzGNf4BrbKTkmXyRfictSJ9HU26HcBuU6Hn4UywaJRT",
+    "artist5": "3TSWAKd5pZTwRogsR2FrxqVBhS8BJYz6WwaHQttsYxqh",
+    "artist6": "GhnjdgNamNWEwjRRzwtfpRZaCsJ83EGFmqbX49xu2UmV"
+  },
+  "steps": [
+    { "op": "as", "who": "artist1" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "artists/DeZJ8XPytsX9Up4zp1wsqu151UJGxozPAcbFxJfpyXjY", "data": { "name": "NEON PULSE", "bio": "Electronic music visionary blending pulsating beats with futuristic soundscapes from Tokyo.", "walletAddress": "$artist1", "isVerified": true } }
+      ]
+    },
+    { "op": "as", "who": "artist2" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "artists/4D556ZQp7cXNLnfoAB2rDkVim94bdHDoc6hLdcV8TbLH", "data": { "name": "CHROME WAVE", "bio": "Synthwave producer crafting retro-futuristic sonic journeys from Los Angeles.", "walletAddress": "$artist2", "isVerified": true } }
+      ]
+    },
+    { "op": "as", "who": "artist3" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "artists/GgAuFcizGrLRMfV4Gn54kVQmo2opUo2CEmyW8b38qGBt", "data": { "name": "AURORA DREAMS", "bio": "Ambient composer creating ethereal soundscapes inspired by northern lights.", "walletAddress": "$artist3", "isVerified": true } }
+      ]
+    },
+    { "op": "as", "who": "artist4" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "artists/3QzGNf4BrbKTkmXyRfictSJ9HU26HcBuU6Hn4UywaJRT", "data": { "name": "GLASS ANIMALS", "bio": "Indie electronic band known for hypnotic rhythms and experimental textures.", "walletAddress": "$artist4", "isVerified": false } }
+      ]
+    },
+    { "op": "as", "who": "artist5" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "artists/3TSWAKd5pZTwRogsR2FrxqVBhS8BJYz6WwaHQttsYxqh", "data": { "name": "MIDNIGHT HZ", "bio": "Bass music producer pushing the boundaries of dubstep and experimental sound design.", "walletAddress": "$artist5", "isVerified": true } }
+      ]
+    },
+    { "op": "as", "who": "artist6" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "artists/GhnjdgNamNWEwjRRzwtfpRZaCsJ83EGFmqbX49xu2UmV", "data": { "name": "VIOLET SKY", "bio": "R&B songstress blending smooth vocals with modern production from Atlanta.", "walletAddress": "$artist6", "isVerified": false } }
+      ]
+    },
+    { "op": "as", "who": "admin" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "songs/song_1", "data": { "name": "Neon Nights", "symbol": "NEON1", "uri": "https://example.com/neon-nights.json", "creator": "$artist1" } },
+        { "path": "songs/song_2", "data": { "name": "Midnight Drive", "symbol": "CHROM1", "uri": "https://example.com/midnight-drive.json", "creator": "$artist2" } },
+        { "path": "songs/song_3", "data": { "name": "Aurora Dreams", "symbol": "AUROR1", "uri": "https://example.com/aurora-dreams.json", "creator": "$artist3" } },
+        { "path": "songs/song_4", "data": { "name": "Glass Echoes", "symbol": "GLASS1", "uri": "https://example.com/glass-echoes.json", "creator": "$artist4" } },
+        { "path": "songs/song_5", "data": { "name": "Quantum Bass", "symbol": "QUANT1", "uri": "https://example.com/quantum-bass.json", "creator": "$artist5" } },
+        { "path": "songs/song_6", "data": { "name": "Violet Skies", "symbol": "VIOLET1", "uri": "https://example.com/violet-skies.json", "creator": "$artist6" } }
+      ]
+    },
+    { "op": "as", "who": "admin" },
+    {
+      "op": "setMany",
+      "writes": [
+        { "path": "songDetails/song_1", "data": { "title": "Neon Nights", "artist": "NEON PULSE", "artistAddress": "$artist1", "description": "An electrifying journey through neon-lit cityscapes at midnight. This track pulses with energy and captures the thrill of racing through endless urban horizons.", "coverImage": "https://picsum.photos/seed/neonnights/400/400", "genre": "Electronic", "minTokensRequired": 1000, "audioUrl": "https://tarobase-app-storage-public-v2-prod.s3.amazonaws.com/tarobase-app-storage-69cfc41e56840f6b0224904e/neon-nights.mp3", "duration": 180, "tokenSymbol": "NEON1", "totalEditions": 100, "currentEditionCount": 3 } },
+        { "path": "songDetails/song_2", "data": { "title": "Midnight Drive", "artist": "CHROME WAVE", "artistAddress": "$artist2", "description": "Cruise through retro-futuristic highways with this synthwave anthem. Features analog synths and driving beats perfect for late-night journeys.", "coverImage": "https://picsum.photos/seed/midnightdrive/400/400", "genre": "Synthwave", "minTokensRequired": 1000 } },
+        { "path": "songDetails/song_3", "data": { "title": "Aurora Dreams", "artist": "AURORA DREAMS", "artistAddress": "$artist3", "description": "Immerse yourself in ethereal soundscapes inspired by the northern lights. A meditative ambient piece that transports listeners to serene arctic dreams.", "coverImage": "https://picsum.photos/seed/auroradreams/400/400", "genre": "Ambient", "minTokensRequired": 1000 } },
+        { "path": "songDetails/song_4", "data": { "title": "Glass Echoes", "artist": "GLASS ANIMALS", "artistAddress": "$artist4", "description": "Hypnotic indie electronic with experimental textures and reflective melodies. Each listen reveals new layers of sonic complexity.", "coverImage": "https://picsum.photos/seed/glassechoes/400/400", "genre": "Indie", "minTokensRequired": 1000 } },
+        { "path": "songDetails/song_5", "data": { "title": "Quantum Bass", "artist": "MIDNIGHT HZ", "artistAddress": "$artist5", "description": "Heavy bass meets quantum physics in this ground-shaking dubstep track. Prepare for a sonic assault that defies conventional sound design.", "coverImage": "https://picsum.photos/seed/quantumbass/400/400", "genre": "Bass/Dubstep", "minTokensRequired": 1000 } },
+        { "path": "songDetails/song_6", "data": { "title": "Violet Skies", "artist": "VIOLET SKY", "artistAddress": "$artist6", "description": "Smooth R&B vocals float over modern production in this soulful debut. A perfect blend of contemporary sound and timeless emotion.", "coverImage": "https://picsum.photos/seed/violetskies/400/400", "genre": "R&B", "minTokensRequired": 1000 } }
+      ]
+    }
+  ]
+}

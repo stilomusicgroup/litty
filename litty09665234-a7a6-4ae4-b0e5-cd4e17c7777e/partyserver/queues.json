@@ -1,0 +1,18 @@
+{
+  "queues": [
+    {
+      "name": "pack-fulfillment",
+      "handler": "./src/queues/pack-fulfillment.ts",
+      "enabled": true,
+      "description": "Durable pack-purchase fulfillment: runs runAllSteps + receipt email for a packPurchases record",
+      "consumer": {
+        "batchSize": 1,
+        "batchTimeoutSeconds": 5,
+        "maxRetries": 5,
+        "retryDelaySeconds": 60,
+        "maxConcurrency": 2,
+        "deadLetter": true
+      }
+    }
+  ]
+}

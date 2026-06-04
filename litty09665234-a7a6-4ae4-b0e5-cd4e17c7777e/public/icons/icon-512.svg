@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000000" rx="96"/>
+  <rect x="16" y="16" width="480" height="480" fill="#080512" rx="82"/>
+  <!-- Music note large -->
+  <path d="M188 152 L188 320 Q188 352 156 352 Q124 352 124 320 Q124 288 156 288 Q172 288 188 296 L188 208 L324 176 L324 288 Q324 320 292 320 Q260 320 260 288 Q260 256 292 256 Q308 256 324 264 L324 192 Z" fill="url(#grad2)" stroke="none"/>
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D946EF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <text x="256" y="440" font-family="system-ui, sans-serif" font-size="48" font-weight="700" fill="#8B5CF6" text-anchor="middle" letter-spacing="10">LIT</text>
+</svg>

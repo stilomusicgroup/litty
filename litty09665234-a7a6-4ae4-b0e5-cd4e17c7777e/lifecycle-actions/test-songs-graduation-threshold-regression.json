@@ -1,0 +1,45 @@
+{
+  "version": "1",
+  "name": "Regression guard: songs/$songId graduation threshold = 10000000 (6-arg createToken)",
+  "actors": {
+    "Artist": "2sbhno78k3oxyMckJiVNGfwo6yUGUnZGTPwv6bhDz4k6",
+    "Admin": "PaNNvnP9A1hPp9r113tuipPmKDXTp1oEEx2PMC1mcvo"
+  },
+  "steps": [
+    {
+      "op": "as",
+      "who": "Artist"
+    },
+    {
+      "op": "mock",
+      "pluginCall": "@PumpFunPlugin.createToken",
+      "returns": true
+    },
+    {
+      "op": "set",
+      "path": "songs/song_graduation_threshold_test",
+      "data": {
+        "name": "Test Song Alpha",
+        "symbol": "TSA",
+        "uri": "https://arweave.net/test-metadata-graduation-threshold",
+        "creator": "$Artist"
+      }
+    },
+    {
+      "op": "expect",
+      "expr": "get(/songs/song_graduation_threshold_test).name == 'Test Song Alpha'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/songs/song_graduation_threshold_test).symbol == 'TSA'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/songs/song_graduation_threshold_test).creator == '$Artist'"
+    },
+    {
+      "op": "expect",
+      "expr": "get(/songs/song_graduation_threshold_test).uri == 'https://arweave.net/test-metadata-graduation-threshold'"
+    }
+  ]
+}

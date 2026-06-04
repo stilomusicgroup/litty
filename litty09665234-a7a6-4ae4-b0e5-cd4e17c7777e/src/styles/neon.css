@@ -1,0 +1,630 @@
+/* ============================================================
+   Neon Cyberpunk Utilities — Lit Studio
+   Neon green (#00FF41) + purple/violet (#9333EA) system
+   ============================================================ */
+
+:root {
+  --font-display: 'Orbitron', sans-serif;
+  --neon-green: #00FF41;
+  --neon-green-dim: #00FF41;
+  --neon-purple: #BF00FF;
+  --neon-violet: #7C3AED;
+  --neon-cyan: #00D4FF;
+  --neon-amber: #FFBF00;
+  --neon-silver: #C0C0C0;
+  --neon-gold: #FFD700;
+  --studio-neon-yellow: #FFFF00;
+}
+
+/* ── Neon green glow — box-shadow variants ── */
+
+.neon-glow-green {
+  box-shadow:
+    0 0 8px rgba(0, 255, 65, 0.5),
+    0 0 20px rgba(0, 255, 65, 0.3),
+    0 0 40px rgba(0, 255, 65, 0.15);
+}
+
+.neon-glow-green-sm {
+  box-shadow:
+    0 0 4px rgba(0, 255, 65, 0.6),
+    0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.neon-glow-green-lg {
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.6),
+    0 0 25px rgba(0, 255, 65, 0.4),
+    0 0 50px rgba(0, 255, 65, 0.2),
+    0 0 80px rgba(0, 255, 65, 0.08);
+}
+
+/* ── Neon purple glow — box-shadow variants ── */
+
+.neon-glow-purple {
+  box-shadow:
+    0 0 8px rgba(147, 51, 234, 0.5),
+    0 0 20px rgba(147, 51, 234, 0.3),
+    0 0 40px rgba(147, 51, 234, 0.15);
+}
+
+.neon-glow-purple-sm {
+  box-shadow:
+    0 0 4px rgba(147, 51, 234, 0.6),
+    0 0 10px rgba(147, 51, 234, 0.3);
+}
+
+.neon-glow-purple-lg {
+  box-shadow:
+    0 0 10px rgba(147, 51, 234, 0.6),
+    0 0 25px rgba(147, 51, 234, 0.4),
+    0 0 50px rgba(147, 51, 234, 0.2),
+    0 0 80px rgba(147, 51, 234, 0.08);
+}
+
+/* ── Neon cyan glow ── */
+
+.neon-glow-cyan {
+  box-shadow:
+    0 0 8px rgba(0, 212, 255, 0.5),
+    0 0 20px rgba(0, 212, 255, 0.3),
+    0 0 40px rgba(0, 212, 255, 0.12);
+}
+
+/* ── Neon text glow ── */
+
+.neon-text-green {
+  color: var(--neon-green);
+  text-shadow:
+    0 0 6px rgba(0, 255, 65, 0.9),
+    0 0 15px rgba(0, 255, 65, 0.6),
+    0 0 30px rgba(0, 255, 65, 0.3);
+}
+
+.neon-text-green-sm {
+  color: var(--neon-green);
+  text-shadow:
+    0 0 4px rgba(0, 255, 65, 0.8),
+    0 0 10px rgba(0, 255, 65, 0.4);
+}
+
+.neon-text-purple {
+  color: var(--neon-purple);
+  text-shadow:
+    0 0 6px rgba(147, 51, 234, 0.9),
+    0 0 15px rgba(147, 51, 234, 0.6),
+    0 0 30px rgba(147, 51, 234, 0.3);
+}
+
+.neon-text-cyan {
+  color: var(--neon-cyan);
+  text-shadow:
+    0 0 6px rgba(0, 212, 255, 0.9),
+    0 0 15px rgba(0, 212, 255, 0.5),
+    0 0 30px rgba(0, 212, 255, 0.25);
+}
+
+/* ── Neon border classes ── */
+
+.neon-border-green {
+  border: 1px solid var(--neon-green);
+  box-shadow:
+    0 0 6px rgba(0, 255, 65, 0.4),
+    inset 0 0 6px rgba(0, 255, 65, 0.05);
+}
+
+.neon-border-green-md {
+  border: 1.5px solid var(--neon-green);
+  box-shadow:
+    0 0 12px rgba(0, 255, 65, 0.5),
+    0 0 24px rgba(0, 255, 65, 0.2),
+    inset 0 0 8px rgba(0, 255, 65, 0.06);
+}
+
+.neon-border-purple {
+  border: 1px solid var(--neon-purple);
+  box-shadow:
+    0 0 6px rgba(147, 51, 234, 0.4),
+    inset 0 0 6px rgba(147, 51, 234, 0.05);
+}
+
+.neon-border-purple-md {
+  border: 1.5px solid var(--neon-purple);
+  box-shadow:
+    0 0 12px rgba(147, 51, 234, 0.5),
+    0 0 24px rgba(147, 51, 234, 0.2),
+    inset 0 0 8px rgba(147, 51, 234, 0.06);
+}
+
+/* ── Typography utility classes ── */
+
+/* Heading font for section titles, labels, etc. */
+.neon-heading {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.1;
+}
+
+/* Wide letter-spacing tagline (e.g. "SONGS BECOME CHARTS") */
+.neon-tagline {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  line-height: 1.2;
+}
+
+/* Large stat/number display */
+.neon-stat {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* Small uppercase label with tracking */
+.neon-label {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  line-height: 1.4;
+}
+
+/* Tier labels: BRONZE, SILVER, GOLD, PLATINUM */
+.neon-tier-label {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  line-height: 1;
+}
+
+/* ── Neon green CTA button ── */
+/* Matches reference: dark bg, bright green border, strong outer glow */
+
+.neon-btn-green {
+  background: rgba(0, 255, 65, 0.06);
+  border: 1.5px solid var(--neon-green);
+  color: var(--neon-green);
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.75rem 2rem;
+  box-shadow:
+    0 0 12px rgba(0, 255, 65, 0.45),
+    0 0 28px rgba(0, 255, 65, 0.2),
+    inset 0 0 10px rgba(0, 255, 65, 0.04);
+  transition: box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.neon-btn-green:hover {
+  background: rgba(0, 255, 65, 0.12);
+  color: #ffffff;
+  box-shadow:
+    0 0 18px rgba(0, 255, 65, 0.65),
+    0 0 40px rgba(0, 255, 65, 0.35),
+    0 0 70px rgba(0, 255, 65, 0.15),
+    inset 0 0 14px rgba(0, 255, 65, 0.08);
+}
+
+/* ── Neon purple button ── */
+
+.neon-btn-purple {
+  background: rgba(147, 51, 234, 0.08);
+  border: 1.5px solid var(--neon-purple);
+  color: var(--neon-purple);
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.75rem 2rem;
+  box-shadow:
+    0 0 12px rgba(147, 51, 234, 0.4),
+    0 0 28px rgba(147, 51, 234, 0.18),
+    inset 0 0 10px rgba(147, 51, 234, 0.04);
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.neon-btn-purple:hover {
+  background: rgba(147, 51, 234, 0.15);
+  box-shadow:
+    0 0 18px rgba(147, 51, 234, 0.6),
+    0 0 40px rgba(147, 51, 234, 0.3),
+    0 0 70px rgba(147, 51, 234, 0.12),
+    inset 0 0 14px rgba(147, 51, 234, 0.07);
+}
+
+/* ── Pulsing/breathing glow animations ── */
+
+@keyframes neon-breathe-green {
+  0%, 100% {
+    box-shadow:
+      0 0 8px rgba(0, 255, 65, 0.4),
+      0 0 20px rgba(0, 255, 65, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 16px rgba(0, 255, 65, 0.7),
+      0 0 36px rgba(0, 255, 65, 0.4),
+      0 0 60px rgba(0, 255, 65, 0.15);
+  }
+}
+
+@keyframes neon-breathe-purple {
+  0%, 100% {
+    box-shadow:
+      0 0 8px rgba(147, 51, 234, 0.4),
+      0 0 20px rgba(147, 51, 234, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 16px rgba(147, 51, 234, 0.7),
+      0 0 36px rgba(147, 51, 234, 0.4),
+      0 0 60px rgba(147, 51, 234, 0.15);
+  }
+}
+
+@keyframes neon-text-breathe-green {
+  0%, 100% {
+    text-shadow:
+      0 0 4px rgba(0, 255, 65, 0.7),
+      0 0 12px rgba(0, 255, 65, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 0 8px rgba(0, 255, 65, 1),
+      0 0 20px rgba(0, 255, 65, 0.7),
+      0 0 40px rgba(0, 255, 65, 0.3);
+  }
+}
+
+@keyframes neon-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+    text-shadow:
+      0 0 6px rgba(0, 255, 65, 0.9),
+      0 0 15px rgba(0, 255, 65, 0.6),
+      0 0 30px rgba(0, 255, 65, 0.3);
+  }
+  20%, 24%, 55% {
+    opacity: 0.7;
+    text-shadow: none;
+  }
+}
+
+.neon-breathe-green {
+  animation: neon-breathe-green 2.5s ease-in-out infinite;
+}
+
+.neon-breathe-purple {
+  animation: neon-breathe-purple 2.5s ease-in-out infinite;
+}
+
+.neon-text-breathe {
+  color: var(--neon-green);
+  animation: neon-text-breathe-green 2.5s ease-in-out infinite;
+}
+
+.neon-flicker {
+  color: var(--neon-green);
+  animation: neon-flicker 3s linear infinite;
+}
+
+/* ── Neon card ── */
+
+.neon-card-green {
+  background: rgba(0, 255, 65, 0.12);
+  border: 1px solid rgba(0, 255, 65, 0.45);
+  box-shadow:
+    0 0 20px rgba(0, 255, 65, 0.25),
+    0 0 40px rgba(0, 255, 65, 0.12),
+    inset 0 0 30px rgba(0, 255, 65, 0.08);
+}
+
+.neon-card-purple {
+  background: rgba(147, 51, 234, 0.14);
+  border: 1px solid rgba(147, 51, 234, 0.5);
+  box-shadow:
+    0 0 20px rgba(147, 51, 234, 0.28),
+    0 0 40px rgba(147, 51, 234, 0.14),
+    inset 0 0 30px rgba(147, 51, 234, 0.1);
+}
+
+/* ── Neon badge ── */
+
+.neon-badge-green {
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.5);
+  color: var(--neon-green);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+}
+
+.neon-badge-purple {
+  background: rgba(191, 0, 255, 0.12);
+  border: 1px solid rgba(191, 0, 255, 0.5);
+  color: #c084fc;
+  box-shadow: 0 0 8px rgba(191, 0, 255, 0.3);
+}
+
+/* ── Neon tier card glows ── */
+.neon-card-bronze {
+  border: 1.5px solid #FFBF00;
+  box-shadow:
+    0 0 12px rgba(255, 191, 0, 0.4),
+    0 0 24px rgba(255, 191, 0, 0.2),
+    inset 0 0 12px rgba(255, 191, 0, 0.08);
+}
+.neon-card-bronze:hover {
+  box-shadow:
+    0 0 18px rgba(255, 191, 0, 0.6),
+    0 0 40px rgba(255, 191, 0, 0.3),
+    inset 0 0 16px rgba(255, 191, 0, 0.1);
+}
+
+.neon-card-silver {
+  border: 1.5px solid #C0C0C0;
+  box-shadow:
+    0 0 12px rgba(192, 192, 192, 0.35),
+    0 0 24px rgba(192, 192, 192, 0.15),
+    inset 0 0 12px rgba(192, 192, 192, 0.06);
+}
+.neon-card-silver:hover {
+  box-shadow:
+    0 0 18px rgba(192, 192, 192, 0.5),
+    0 0 40px rgba(192, 192, 192, 0.25),
+    inset 0 0 16px rgba(192, 192, 192, 0.08);
+}
+
+.neon-card-gold {
+  border: 1.5px solid #FFD700;
+  box-shadow:
+    0 0 12px rgba(255, 215, 0, 0.45),
+    0 0 24px rgba(255, 215, 0, 0.2),
+    inset 0 0 12px rgba(255, 215, 0, 0.06);
+}
+.neon-card-gold:hover {
+  box-shadow:
+    0 0 18px rgba(255, 215, 0, 0.6),
+    0 0 40px rgba(255, 215, 0, 0.3),
+    inset 0 0 16px rgba(255, 215, 0, 0.08);
+}
+
+.neon-card-studio {
+  border: 1.5px solid #FFFF00;
+  box-shadow:
+    0 0 12px rgba(255, 255, 0, 0.45),
+    0 0 24px rgba(255, 255, 0, 0.2),
+    inset 0 0 12px rgba(255, 255, 0, 0.06);
+}
+.neon-card-studio:hover {
+  box-shadow:
+    0 0 18px rgba(255, 255, 0, 0.6),
+    0 0 40px rgba(255, 255, 0, 0.3),
+    inset 0 0 16px rgba(255, 255, 0, 0.08);
+}
+
+.neon-card-diamond {
+  border: 1.5px solid #a855f7;
+  box-shadow:
+    0 0 12px rgba(168, 85, 247, 0.5),
+    0 0 24px rgba(168, 85, 247, 0.25),
+    inset 0 0 12px rgba(168, 85, 247, 0.08);
+}
+.neon-card-diamond:hover {
+  box-shadow:
+    0 0 18px rgba(168, 85, 247, 0.7),
+    0 0 40px rgba(168, 85, 247, 0.35),
+    inset 0 0 16px rgba(168, 85, 247, 0.1);
+}
+
+.neon-card-legend {
+  border: 1.5px solid #f59e0b;
+  box-shadow:
+    0 0 12px rgba(245, 158, 11, 0.5),
+    0 0 24px rgba(245, 158, 11, 0.25),
+    inset 0 0 12px rgba(245, 158, 11, 0.08);
+}
+.neon-card-legend:hover {
+  box-shadow:
+    0 0 18px rgba(245, 158, 11, 0.7),
+    0 0 40px rgba(245, 158, 11, 0.35),
+    inset 0 0 16px rgba(245, 158, 11, 0.1);
+}
+
+/* ── Neon glow button variants ── */
+.neon-btn-amber {
+  background: rgba(255, 191, 0, 0.06);
+  border: 1.5px solid #FFBF00;
+  color: #FFBF00;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.75rem 2rem;
+  box-shadow:
+    0 0 12px rgba(255, 191, 0, 0.45),
+    0 0 28px rgba(255, 191, 0, 0.2),
+    inset 0 0 10px rgba(255, 191, 0, 0.04);
+  transition: box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.neon-btn-amber:hover {
+  background: rgba(255, 191, 0, 0.12);
+  color: #ffffff;
+  box-shadow:
+    0 0 18px rgba(255, 191, 0, 0.65),
+    0 0 40px rgba(255, 191, 0, 0.35),
+    inset 0 0 14px rgba(255, 191, 0, 0.08);
+}
+
+.neon-btn-cyan {
+  background: rgba(0, 212, 255, 0.06);
+  border: 1.5px solid #00D4FF;
+  color: #00D4FF;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.75rem 2rem;
+  box-shadow:
+    0 0 12px rgba(0, 212, 255, 0.45),
+    0 0 28px rgba(0, 212, 255, 0.2),
+    inset 0 0 10px rgba(0, 212, 255, 0.04);
+  transition: box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.neon-btn-cyan:hover {
+  background: rgba(0, 212, 255, 0.12);
+  color: #ffffff;
+  box-shadow:
+    0 0 18px rgba(0, 212, 255, 0.65),
+    0 0 40px rgba(0, 212, 255, 0.35),
+    inset 0 0 14px rgba(0, 212, 255, 0.08);
+}
+
+.neon-text-silver {
+  color: #C0C0C0;
+  text-shadow:
+    0 0 4px rgba(192, 192, 192, 0.6),
+    0 0 10px rgba(192, 192, 192, 0.3);
+}
+
+.neon-text-gold {
+  color: #FFD700;
+  text-shadow:
+    0 0 4px rgba(255, 215, 0, 0.7),
+    0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* ── Neon divider ── */
+
+.neon-divider-green {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 255, 65, 0.6) 30%,
+    rgba(0, 255, 65, 0.6) 70%,
+    transparent
+  );
+  box-shadow: 0 0 6px rgba(0, 255, 65, 0.4);
+}
+
+.neon-divider-purple {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(147, 51, 234, 0.6) 30%,
+    rgba(147, 51, 234, 0.6) 70%,
+    transparent
+  );
+  box-shadow: 0 0 6px rgba(147, 51, 234, 0.4);
+}
+
+/* ── Neon input focus ── */
+
+.neon-input:focus,
+.neon-input:focus-visible {
+  border-color: var(--neon-green);
+  box-shadow:
+    0 0 8px rgba(0, 255, 65, 0.4),
+    0 0 16px rgba(0, 255, 65, 0.15);
+  outline: none;
+}
+
+/* ── Neon section header — green with glow ── */
+
+.neon-section-header {
+  color: #00FF41;
+  text-shadow:
+    0 0 6px rgba(0, 255, 65, 0.9),
+    0 0 15px rgba(0, 255, 65, 0.6),
+    0 0 30px rgba(0, 255, 65, 0.3);
+}
+
+/* ── Neon scanline overlay (optional retro effect) ── */
+
+.neon-scanlines {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Cover art / image neon hover ── */
+
+.neon-img-green:hover {
+  box-shadow:
+    0 0 15px rgba(0, 255, 65, 0.5),
+    0 0 35px rgba(0, 255, 65, 0.25);
+  transition: box-shadow 0.3s ease;
+}
+
+.neon-img-purple:hover {
+  box-shadow:
+    0 0 15px rgba(147, 51, 234, 0.5),
+    0 0 35px rgba(147, 51, 234, 0.25);
+  transition: box-shadow 0.3s ease;
+}
+
+/* ── Missing keyframes used by dashboard components ── */
+
+@keyframes floatGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(0, 255, 65, 0.5),
+      0 0 60px rgba(0, 255, 65, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(0, 255, 65, 0.7),
+      0 0 80px rgba(0, 255, 65, 0.35);
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes scanline {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100%); }
+}
+
+/* ── CRT scanline scroll animation ── */
+/* Moves the repeating-linear-gradient downward one "tile" (4px) per cycle */
+
+@keyframes crtScanroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(4px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

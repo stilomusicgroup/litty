@@ -1,0 +1,556 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&display=swap');
+
+/*
+ * V3 Base Styles
+ * Font loading is handled by the theme system at runtime.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './neon.css';
+
+/* ── Canonical font variables ── */
+:root {
+  --font-display: 'Archivo Black', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --border-glow: rgba(0, 255, 65, 0.20);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+  }
+
+  /* Buttons default to uppercase with generous padding and letter-spacing */
+  button:not([class*="no-style"]) {
+    letter-spacing: 0.04em;
+  }
+
+  html {
+    overflow-x: clip;
+    max-width: 100%;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: clip;
+    max-width: 100%;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #000000;
+  }
+
+  /* Light mode: sky gradient background with animated clouds */
+  html:not(.dark) body {
+    background-image: none;
+    background-color: #a8d8ea;
+    background-size: unset;
+    background-position: unset;
+    background-repeat: unset;
+    background-attachment: unset;
+  }
+
+  html:not(.dark) {
+    background: linear-gradient(160deg, #a8d8ea 0%, #b8e4f5 40%, #cceeff 70%, #e0f5ff 100%);
+  }
+
+  html:not(.dark) body::before,
+  html:not(.dark) body::after {
+    content: '';
+    position: fixed;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Cloud 1 — large soft cloud drifting slowly */
+  html:not(.dark) body::before {
+    top: -10%;
+    left: -10%;
+    width: 60%;
+    height: 50%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 40%, transparent 70%);
+    filter: blur(60px);
+    animation: cloud-drift-1 35s ease-in-out infinite alternate;
+  }
+
+  /* Cloud 2 — smaller cloud, different position */
+  html:not(.dark) body::after {
+    top: 40%;
+    right: -15%;
+    width: 55%;
+    height: 45%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 45%, transparent 70%);
+    filter: blur(80px);
+    animation: cloud-drift-2 40s ease-in-out infinite alternate;
+  }
+
+  /* Cloud animations — slow gentle drift */
+  @keyframes cloud-drift-1 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+    50% { transform: translate(8vw, 5vh) scale(1.1); opacity: 0.8; }
+    100% { transform: translate(-5vw, 3vh) scale(1.05); opacity: 0.7; }
+  }
+
+  @keyframes cloud-drift-2 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate(-10vw, -4vh) scale(1.08); opacity: 0.7; }
+    100% { transform: translate(5vw, -2vh) scale(1.02); opacity: 0.6; }
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  /* Ensure minimum touch target sizes on mobile — relaxed for compact music app feel */
+  @media (max-width: 767px) {
+    button, a, [role="button"], input[type="submit"], input[type="button"] {
+      min-height: 32px;
+      min-width: 32px;
+    }
+
+    /* Override for inline/icon-only buttons that should stay small */
+    .touch-target-sm {
+      min-height: 28px;
+      min-width: 28px;
+    }
+
+    /* Inline elements that need to be smaller */
+    .inline-touch {
+      min-height: auto;
+      min-width: auto;
+    }
+  }
+
+  /* Safe area insets for notched phones */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Do NOT set overscroll-behavior-y: contain — it traps momentum scrolling mid-page */
+
+  /* Better scrolling on iOS */
+  .scroll-smooth-ios {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Input zoom prevention on iOS (16px minimum) */
+  @media (max-width: 767px) {
+    input:not([data-compact]), select:not([data-compact]), textarea:not([data-compact]) {
+      font-size: 16px !important;
+    }
+  }
+}
+
+/* ── Background pattern utilities ── */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, hsl(var(--border) / 0.4) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-noise {
+  position: relative;
+}
+.bg-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(ellipse at top, hsl(var(--primary) / 0.08) 0%, transparent 60%);
+}
+
+.bg-gradient-spotlight {
+  background: radial-gradient(circle at 30% 20%, hsl(var(--primary) / 0.12) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, hsl(var(--accent) / 0.08) 0%, transparent 50%);
+}
+
+/* ── Stagger delay utilities (use with animate-* classes) ── */
+.delay-1 { animation-delay: 75ms; }
+.delay-2 { animation-delay: 150ms; }
+.delay-3 { animation-delay: 225ms; }
+.delay-4 { animation-delay: 300ms; }
+.delay-5 { animation-delay: 375ms; }
+.delay-6 { animation-delay: 450ms; }
+
+/* ── Glass morphism utility ── */
+.glass {
+  background: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+/* ── Typography utilities ── */
+.text-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.text-headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw + 0.5rem, 3rem);
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.text-subhead {
+  font-size: clamp(1.125rem, 1.5vw + 0.5rem, 1.5rem);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: hsl(var(--muted-foreground));
+}
+
+.text-overline {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+}
+
+/* ── Divider utilities ── */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(to right, transparent, hsl(var(--border) / 0.6), transparent);
+}
+
+.divider-glow {
+  height: 1px;
+  background: linear-gradient(to right, transparent, hsl(var(--primary) / 0.4), transparent);
+}
+
+/* ── Gradient text utility ── */
+.gradient-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+}
+
+/* ── Mobile-specific utilities ── */
+@media (max-width: 767px) {
+  /* Tight edge-to-edge padding on mobile — feel more like a native app */
+  .container {
+    max-width: 100%;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  /* Full-width mobile layout — remove restrictive max-widths */
+  #app-container,
+  #app-main {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Better scrollable containers — touch-action: pan-y ensures vertical page scroll
+     is never blocked when user swipes vertically over a horizontal carousel */
+  .mobile-scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    touch-action: pan-y;
+  }
+  .mobile-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent wide images from overflowing on mobile */
+  img {
+    max-width: 100%;
+  }
+
+  /* Flex children that can cause overflow — ensure they shrink */
+  .flex > * {
+    min-width: 0;
+  }
+}
+
+/* ── Horizontal scroll rows — edge-to-edge with touch scrolling ── */
+.scroll-row {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-wrap: nowrap;
+  scroll-behavior: smooth;
+  touch-action: pan-x;
+  /* allow vertical page scroll when swiping diagonally */
+  overscroll-behavior-x: contain;
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Horizontal scroll containers — hide scrollbar ── */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Bottom sheet / modal mobile styles ── */
+@media (max-width: 767px) {
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 16px) !important;
+  }
+}
+
+/* ── Custom scrollbar for dark themes ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* ── Neon glow on primary action buttons (neon green) ── */
+.neon-glow-btn {
+  box-shadow:
+    0 0 12px rgba(0, 255, 65, 0.5),
+    0 0 28px rgba(0, 255, 65, 0.2);
+}
+
+/* ── Card border — subtle green glow ── */
+.card-border {
+  border: 1px solid var(--border-glow);
+}
+.neon-card {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.08), inset 0 0 8px rgba(0, 255, 65, 0.02);
+}
+
+/* ── Active tab pulse animation — 400ms, one time ── */
+@keyframes tab-pulse {
+  0% { filter: drop-shadow(0 0 0px rgba(0, 255, 65, 0)); }
+  50% { filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.7)); }
+  100% { filter: drop-shadow(0 0 0px rgba(0, 255, 65, 0)); }
+}
+
+.tab-active-pulse {
+  animation: tab-pulse 400ms ease-out 1;
+}
+
+/* ── Shimmer border animation for tier badges — 3s infinite loop ── */
+@keyframes shimmer-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.shimmer-border {
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  animation: shimmer-border 3s linear infinite;
+  background-size: 200% 200%;
+}
+
+.shimmer-border::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #00FF41, #00FF41, #00D4FF, #00FF41);
+  background-size: 300% 100%;
+  animation: shimmer-border 3s linear infinite;
+  z-index: -1;
+}
+
+/* ── Neon glow idle pulse for CTA buttons (neon green) ── */
+@keyframes neon-pulse-idle {
+  0%, 100% {
+    box-shadow:
+      0 0 12px rgba(0, 255, 65, 0.35),
+      0 0 28px rgba(0, 255, 65, 0.15),
+      0 0 50px rgba(0, 255, 65, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(0, 255, 65, 0.6),
+      0 0 45px rgba(0, 255, 65, 0.3),
+      0 0 70px rgba(0, 255, 65, 0.12);
+  }
+}
+
+.neon-pulse-cta {
+  animation: neon-pulse-idle 2s ease-in-out infinite;
+}
+
+/* ── Progress bar glow (green + cyan) ── */
+@keyframes progress-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 5px rgba(0, 255, 65, 0.6),
+      0 0 10px rgba(0, 212, 255, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 10px rgba(0, 255, 65, 0.8),
+      0 0 20px rgba(0, 212, 255, 0.5);
+  }
+}
+
+.progress-glow {
+  animation: progress-glow 2s ease-in-out infinite;
+}
+
+/* ── Neon cover art hover glow ── */
+.cover-glow-hover:hover {
+  box-shadow:
+    0 0 15px rgba(0, 255, 65, 0.45),
+    0 0 30px rgba(0, 255, 65, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+
+/* ── Card shine/shimmer effect on hover ── */
+@keyframes card-shine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(25deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(25deg);
+  }
+}
+
+@keyframes card-glow-border {
+  0%, 100% {
+    border-color: rgba(0, 255, 65, 0.15);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.08), inset 0 0 8px rgba(0, 255, 65, 0.02);
+  }
+  33% {
+    border-color: rgba(0, 255, 65, 0.3);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.12), inset 0 0 10px rgba(0, 255, 65, 0.04);
+  }
+  66% {
+    border-color: rgba(0, 255, 65, 0.25);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.1), inset 0 0 10px rgba(0, 255, 65, 0.03);
+  }
+}
+
+.card-shine {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-shine:hover {
+  border-color: rgba(0, 255, 65, 0.3) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.12), 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.card-shine:hover .card-shine-overlay {
+  opacity: 1;
+}
+
+.card-shine-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  background: linear-gradient(
+    25deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(0, 255, 65, 0.06) 40%,
+    rgba(0, 255, 65, 0.1) 45%,
+    rgba(0, 255, 65, 0.12) 50%,
+    rgba(0, 255, 65, 0.1) 55%,
+    rgba(0, 255, 65, 0.06) 60%,
+    transparent 65%,
+    transparent 100%
+  );
+  transition: opacity 0.3s ease;
+}
+
+.card-shine:hover .card-shine-overlay {
+  animation: card-shine 1.2s ease-out forwards;
+}
+
+/* ── Audio waveform visualizer bars ── */
+@keyframes waveform-bar {
+  0%, 100% { transform: scaleY(0.18); }
+  50%       { transform: scaleY(1); }
+}
+
+.waveform-bar {
+  width: 2px;
+  border-radius: 1px;
+  transform-origin: bottom;
+  animation: waveform-bar linear infinite;
+  background: #00FF41;
+}
+
+.waveform-bar-idle {
+  width: 2px;
+  border-radius: 1px;
+  transform: scaleY(0.18);
+  transform-origin: bottom;
+  background: rgba(0, 255, 65, 0.35);
+}
+
+/* ── Chart skeleton shimmer for empty price charts ── */
+@keyframes chart-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

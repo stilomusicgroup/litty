@@ -1,0 +1,1767 @@
+{
+  "adminFiles/$fileId": {
+    "type": "storage",
+    "description": "Admin-only file storage",
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.ADMIN_ADDRESS",
+      "update": "false",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS"
+    }
+  },
+  "appFiles/$fileId": {
+    "type": "storage",
+    "description": "App user uploaded files",
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null",
+      "update": "false",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS"
+    }
+  },
+  "commonQueries/$queryId": {
+    "description": "Read-only queries for wallet balances and swap quotes. Supports SOL/USDC/SPL token balance lookups, Jupiter swap quotes, and Meteora dynamic bonding curve quotes.",
+    "operationDetails": {
+      "read": "Anyone can use these queries: (1) Balance queries - check SOL, USDC, or any SPL token balance for any wallet address. (2) Jupiter swap quotes - get expected output amounts for token swaps via Jupiter aggregator. (3) Meteora swap quotes - get expected output amounts for Meteora dynamic bonding curve pools."
+    },
+    "onchain": false,
+    "fields": {},
+    "rules": {
+      "read": "true",
+      "create": "false",
+      "update": "false",
+      "delete": "false"
+    },
+    "queries": {
+      "solBalance": {
+        "description": "Get SOL balance for a wallet address in lamports (1 SOL = 1,000,000,000 lamports). Pass walletAddress as parameter.",
+        "returnType": "UInt",
+        "query": "@TokenPlugin.getBalance(@newData.walletAddress, @constants.SOL)"
+      },
+      "usdcBalance": {
+        "description": "Get USDC balance for a wallet address in base units (1 USDC = 1,000,000 base units with 6 decimals). Pass walletAddress as parameter.",
+        "returnType": "UInt",
+        "query": "@TokenPlugin.getBalance(@newData.walletAddress, @constants.USDC)"
+      },
+      "tokenBalance": {
+        "description": "Get balance for any SPL token mint for a wallet address. Pass walletAddress and tokenMint as parameters. Returns balance in the token's smallest units based on its decimals.",
+        "returnType": "UInt",
+        "query": "@TokenPlugin.getBalance(@newData.walletAddress, @newData.tokenMint)"
+      },
+      "jupiterSwapQuote": {
+        "description": "Get a Jupiter swap quote for exchanging tokens. Pass inputMint (token to sell, use @constants.SOL for native SOL), outputMint (token to buy), and amount (in smallest units like lamports). Returns the expected output amount.",
+        "returnType": "UInt",
+        "query": "@DeFiPlugin.getSwapQuote(@newData.inputMint, @newData.outputMint, @newData.amount)"
+      },
+      "meteoraSwapQuote": {
+        "description": "Get a Meteora dynamic bonding curve swap quote. Pass tokenMintAddress (the pool's base token), tokenToSwapInMintAddress (token to swap in, use @constants.SOL for native SOL), and tokenAmount (in smallest units). Returns the expected output amount.",
+        "returnType": "UInt",
+        "query": "@DeFiPlugin.getMeteoraSwapQuote(@newData.tokenMintAddress, @newData.tokenToSwapInMintAddress, @newData.tokenAmount)"
+      }
+    }
+  },
+  "songs/$songId": {
+    "description": "Core song token collection. Each song is launched as a tradable SPL token via PumpFunPlugin with automatic bonding curve.",
+    "fields": {
+      "name": "String!",
+      "symbol": "String!",
+      "uri": "String!",
+      "creator": "Address!",
+      "audiusStreamUrl": "String?",
+      "audiusTrackId": "String?",
+      "albumId": "String?",
+      "slotNumber": "UInt?",
+      "isPrivate": "Bool?",
+      "graduated": "Bool?",
+      "graduatedAt": "UInt?",
+      "teaserImageUrl": "String?",
+      "graduationReserveBps": "UInt?",
+      "assetType": "String?",
+      "mintStatus": "String?",
+      "hasSplToken": "Bool?",
+      "beamUpEnabled": "Bool?",
+      "beamUpRequestCount": "Int?",
+      "firstBeamerWallet": "String?",
+      "firstBeamerEmail": "String?",
+      "mintAddress": "String?",
+      "pairCurrency": "String?",
+      "paused": "Bool?",
+      "hidden": "Bool?",
+      "swapEligible": "Bool?"
+    },
+    "onchain": true,
+    "rules": {
+      "read": "true",
+      "create": "(@user.address == @newData.creator && @newData.swapEligible != true) || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "update": "(@user.address == @data.creator && @newData.swapEligible != true) || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "(@newData.pairCurrency == 'USDC' && @TokenPlugin.createToken($songId, @newData.name, @newData.symbol, @newData.uri, 6) && @DeFiPlugin.createPool(@user.address, @TokenPlugin.getTokenMintAddress($songId, @newData.name, @newData.symbol), @constants.USDC, 10000000, 1000000)) || (@newData.pairCurrency != 'USDC' && @PumpFunPlugin.createToken($songId, @newData.name, @newData.symbol, @newData.uri, @user.address, 10000000)) || true"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view song metadata.",
+      "create": "Authenticated users can create songs. Creators cannot set swapEligible to true (admin-only). Admin, project vault, and operations wallet have full create access.",
+      "update": "Creator or admin can update. Creators cannot set swapEligible to true (admin-only). Admin, project vault, and operations wallet have full update access.",
+      "delete": "Operation disallowed. Songs are immutable for audit trail."
+    },
+    "queries": {
+      "getTokenMintAddress": {
+        "returnType": "String",
+        "query": "@TokenPlugin.getTokenMintAddress($songId, @data.name, @data.symbol)"
+      },
+      "getBondingCurveProgress": {
+        "returnType": "UInt",
+        "query": "@PumpFunPlugin.getBondingCurveProgress(@TokenPlugin.getTokenMintAddress($songId, @data.name, @data.symbol))"
+      },
+      "getCreatorFee": {
+        "returnType": "UInt",
+        "query": "@PumpFunPlugin.getCreatorFee(@TokenPlugin.getTokenMintAddress($songId, @data.name, @data.symbol))"
+      },
+      "getTokenBalance": {
+        "returnType": "UInt",
+        "query": "@TokenPlugin.getBalance(@newData.walletAddress, @TokenPlugin.getTokenMintAddress($songId, @data.name, @data.symbol))"
+      },
+      "getSolPriceUsd": {
+        "returnType": "UInt",
+        "query": "@PriceFeedPlugin.getPriceFeed(@PriceFeedPlugin.SOL)"
+      }
+    }
+  },
+  "songDetails/$songId": {
+    "description": "Extended song metadata stored offchain to minimize onchain costs. Uses same $songId as the onchain songs collection for linkage.",
+    "fields": {
+      "title": "String",
+      "artist": "String",
+      "artistAddress": "Address!",
+      "description": "String?",
+      "coverImage": "String?",
+      "audioUrl": "String?",
+      "genre": "String?",
+      "lyrics": "String?",
+      "minTokensRequired": "UInt?",
+      "streamRequirement": "Int",
+      "nftMint": "String?",
+      "approved": "Bool",
+      "audiusArtworkUrl": "String?",
+      "audiusHandle": "String?",
+      "audiusStreamUrl": "String?",
+      "audiusTrackId": "String?",
+      "duration": "UInt?",
+      "totalEditions": "UInt?",
+      "currentEditionCount": "UInt?",
+      "tokenSymbol": "String?",
+      "approvalStatus": "String?",
+      "rejectionReason": "String?",
+      "changesRequested": "String?",
+      "submittedAt": "UInt?",
+      "launchMode": "String?",
+      "artistEmail": "String?",
+      "nftRoyaltyPct": "UInt?",
+      "releaseDate": "String?",
+      "releasePlatforms": "String?",
+      "releaseTime": "String?",
+      "isGraduated": "Bool?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.ADMIN_ADDRESS",
+      "update": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view song metadata, including whether a submission has been approved for marketplace display.",
+      "create": "Only the system backend (PROJECT_VAULT_ADDRESS) or admin (ADMIN_ADDRESS) can create song metadata. Creation should happen as part of the automated token launch pipeline or admin action.",
+      "update": "ADMIN_ADDRESS, PROJECT_VAULT_ADDRESS, or OPERATIONS_WALLET can update. Includes setting isGraduated to true when a song's bonding curve reaches 100% and the token graduates to a DEX. Admin should set isGraduated: true at graduation time to signal that trading should route through DEX (Jupiter/PumpSwap) instead of bonding curve.",
+      "delete": "Disallowed. Song metadata remains preserved for review and audit purposes."
+    },
+    "queries": {
+      "tokenPriceUsd": {
+        "returnType": "String",
+        "query": "@DeFiPlugin.getSwapQuote(@TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @constants.USDC, 1000000)"
+      },
+      "tokenPriceSol": {
+        "returnType": "String",
+        "query": "@DeFiPlugin.getSwapQuote(@TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @constants.SOL, 1000000)"
+      }
+    }
+  },
+  "songs/$songId/swaps/$swapId": {
+    "description": "Buy or sell song tokens via Jupiter aggregator. Supports trading both on bonding curve and after graduation.",
+    "fields": {
+      "mint": "Address!",
+      "amt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "(@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true) && @DeFiPlugin.swap(@user.address, @newData.mint, @TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @newData.amt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read.",
+      "create": "Any user can swap when PLATFORM_PAUSED is false and the song's paused field is not true. Set mint to @constants.SOL to buy song tokens with SOL, or set mint to the song token mint address to sell tokens for SOL. amt is in the smallest unit of the input token (lamports for SOL).",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "songs/$songId/buys/$buyId": {
+    "description": "Buy song tokens directly on bonding curve with exact SOL input amount.",
+    "fields": {
+      "solAmt": "UInt!",
+      "slip": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "(@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true) && (@PumpFunPlugin.buyExactSolIn(@user.address, @TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @newData.solAmt, @newData.slip) && @TokenPlugin.transfer(@user.address, @constants.PROJECT_VAULT_ADDRESS, @constants.SOL, @newData.solAmt * @constants.PLATFORM_FEE_BPS // 10000))"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read.",
+      "create": "Any user can buy song tokens on bonding curve when PLATFORM_PAUSED is false and the song's paused field is not true. solAmt is in lamports (1 SOL = 1000000000 lamports). slip is slippage in basis points (500 = 5%). Works only while token is on bonding curve (before graduation). A 2% platform fee (PLATFORM_FEE_BPS / 10000) in SOL is automatically transferred from the buyer to PROJECT_VAULT_ADDRESS (OPERATIONS_WALLET / infra fee wallet) after each buy.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "songs/$songId/collectFees/$feeId": {
+    "description": "Collect accumulated bonding curve creator fees for a song token.",
+    "fields": {},
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "(@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true) && @PumpFunPlugin.collectCreatorFee(get(/songs/$songId).creator, @TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol))"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read.",
+      "create": "Permissionless when PLATFORM_PAUSED is false and the song's paused field is not true. Derives creator from the onchain song document and sends accumulated SOL creator fees to the artist's wallet.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "artists/$artistAddress": {
+    "description": "Artist profiles with display name, bio, and verification status.",
+    "fields": {
+      "name": "String",
+      "bio": "String?",
+      "profileImage": "String?",
+      "walletAddress": "Address!",
+      "isVerified": "Bool",
+      "creatorWallet": "Address?",
+      "bannerImage": "String?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "$artistAddress == @user.address && @newData.walletAddress == @user.address",
+      "update": "$artistAddress == @user.address || @user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view artist profiles.",
+      "create": "Users can only create their own artist profile. The $artistAddress path param must equal the caller's wallet, and walletAddress field must match. isVerified must be set (defaults to false on frontend). creatorWallet is NOT set at creation - it is populated later by the backend.",
+      "update": "The artist (matching $artistAddress) can update their own profile fields. ADMIN_ADDRESS and PROJECT_VAULT_ADDRESS can also update artist profiles, primarily for toggling isVerified status and for the backend to populate creatorWallet (the Privy-created embedded Solana wallet pubkey).",
+      "delete": "Disallowed. Artist profiles are permanent."
+    }
+  },
+  "purchases/$purchaseId": {
+    "description": "Audit trail for Shopify webhook purchases. Only the backend (PROJECT_VAULT_ADDRESS) can create and update these records.",
+    "fields": {
+      "email": "String!",
+      "orderId": "String!",
+      "songId": "String?",
+      "walletAddress": "String?",
+      "tokenAmount": "UInt?",
+      "status": "String",
+      "shopifyPayload": "String?",
+      "createdAt": "UInt!",
+      "nftCount": "UInt?",
+      "nftTxHashes": "String?",
+      "artistPayout": "UInt?",
+      "platformFee": "UInt?",
+      "receiptData": "String?",
+      "packAmountUsd": "UInt?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Only admin and backend vault can read purchase records for auditing and backend processing.",
+      "create": "Only the backend (PROJECT_VAULT_ADDRESS) can create purchase records when Shopify webhooks are received. email and orderId are immutable after creation. status should be 'pending', 'completed', or 'failed'.",
+      "update": "Only the backend can update purchase records, typically to change status from 'pending' to 'completed' or 'failed' and to set walletAddress and tokenAmount after airdrop.",
+      "delete": "Disallowed. Purchase records are immutable for audit trail."
+    }
+  },
+  "users/$userAddress": {
+    "description": "User profiles with email linkage for Shopify webhook matching and token airdrop delivery.",
+    "fields": {
+      "displayName": "String?",
+      "email": "String?",
+      "walletAddress": "Address!",
+      "profileImage": "String?",
+      "username": "String?",
+      "twitter": "String?",
+      "instagram": "String?",
+      "spotify": "String?",
+      "tiktok": "String?",
+      "youtube": "String?",
+      "twitch": "String?",
+      "kick": "String?",
+      "soundcloud": "String?",
+      "facebook": "String?",
+      "linkedin": "String?",
+      "telegram": "String?",
+      "website": "String?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "($userAddress == @user.address && @newData.walletAddress == @user.address) || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "update": "$userAddress == @user.address || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view user profiles.",
+      "create": "Users can create their own profile when $userAddress and walletAddress match their wallet. The backend (PROJECT_VAULT_ADDRESS) and ADMIN_ADDRESS can also create user records for new card-purchase wallets or administrative purposes.",
+      "update": "Users can update their own profile. PROJECT_VAULT_ADDRESS, OPERATIONS_WALLET, and ADMIN_ADDRESS can also update user records.",
+      "delete": "Disallowed. User profiles are permanent."
+    }
+  },
+  "shopifyProducts/$productId": {
+    "description": "Maps Shopify product IDs (or variant IDs) to Lit Studios song IDs. Used by the webhook to determine which song an order purchased, and by the frontend to show Buy with Card links.",
+    "fields": {
+      "shopifyProductId": "String!",
+      "songId": "String!",
+      "shopifyVariantId": "String?",
+      "createdAt": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null",
+      "update": "false",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Anyone can read product-to-song mappings so the frontend and backend can resolve Shopify products to Lit Studios songs.",
+      "create": "Any authenticated wallet can create a mapping document. The document ID is the full Shopify product identifier or another app-chosen mapping key, and createdAt must be provided as a Unix timestamp in seconds.",
+      "update": "Operation disallowed. Mapping records are immutable after creation to avoid accidental checkout mismatches.",
+      "delete": "Operation disallowed. Mapping records are preserved for auditability and stable product resolution."
+    }
+  },
+  "nftMints/$nftId": {
+    "description": "Metaplex NFT editions for songs. Each song can have NFT bundles or limited editions minted alongside the SPL token.",
+    "fields": {
+      "songId": "String!",
+      "mintAddress": "Address!",
+      "owner": "Address!",
+      "tokenMint": "Address!",
+      "title": "String!",
+      "artist": "String!",
+      "coverImage": "String?",
+      "isSoulbound": "Bool",
+      "editionType": "String",
+      "editionNumber": "Int?",
+      "totalEditions": "Int?",
+      "royaltyBps": "UInt?"
+    },
+    "onchain": true,
+    "rules": {
+      "read": "true",
+      "create": "@newData.owner == @user.address || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @data.owner",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Anyone can read NFT mint records because onchain documents are public. The collection links song releases to their NFT edition mint addresses and ownership metadata.",
+      "create": "Authenticated users can create a record when owner matches the caller wallet, or the backend vault (PROJECT_VAULT_ADDRESS) can create records on behalf of buyers during Shopify webhook dual-mint fulfillment. The frontend should provide the associated songId, tokenMint, title, artist, edition metadata, and the minted Metaplex mintAddress after the dual-mint flow completes.",
+      "update": "Only the stored owner can update mutable metadata fields for the NFT mint record. Immutable fields marked with ! such as songId, mintAddress, owner, tokenMint, title, and artist cannot be changed after creation.",
+      "delete": "Operation disallowed. NFT mint records are preserved permanently for auditability and song-to-NFT linkage."
+    }
+  },
+  "songs/$songId/airdrops/$airdropId": {
+    "description": "Passthrough buyer airdrop transfer from the project vault to a recipient wallet for Shopify fulfillment workflows.",
+    "fields": {
+      "recipient": "Address!",
+      "amount": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.PROJECT_VAULT_ADDRESS, @newData.recipient, get(/songs/$songId).mintAddress, @newData.amount)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect buyer airdrop requests and outcomes.",
+      "create": "ADMIN_ADDRESS or PROJECT_VAULT_ADDRESS can trigger a buyer airdrop payout for a song purchase. recipient is the destination wallet and amount is the song token amount in the token's smallest base units; the passthrough hook transfers the song-specific SPL token mint derived from the parent song document from PROJECT_VAULT_ADDRESS to the recipient without storing a permanent record.",
+      "update": "Disallowed. Passthrough airdrop operations are immutable and execute only on create.",
+      "delete": "Disallowed. Passthrough airdrop operations cannot be removed."
+    }
+  },
+  "editions/$editionId": {
+    "description": "Limited-edition collectible releases for Lit Studios. Stores metadata, artist ownership, pricing in lamports, edition supply, and the bundled SPL mint address used during purchase fulfillment.",
+    "fields": {
+      "title": "String",
+      "artist": "String",
+      "artistAddress": "Address!",
+      "description": "String?",
+      "coverImage": "String?",
+      "audioUrl": "String?",
+      "editionSize": "UInt!",
+      "remaining": "UInt!",
+      "priceSol": "UInt!",
+      "mintAddress": "String?",
+      "editionTokenName": "String",
+      "editionTokenSymbol": "String",
+      "createdAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@newData.artistAddress == @user.address",
+      "update": "@user.address == @data.artistAddress && @data.remaining > 0",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Anyone can read edition records to browse collectible releases, pricing, metadata, and remaining inventory. The document is offchain and acts as the control record for the collectible release while the blockchain operations happen in sub-collections.",
+      "create": "Only the artist creating the collectible can create the edition, and artistAddress must equal the caller wallet. editionSize, remaining, and priceSol are required UInt values; priceSol is stored in lamports and remaining should start equal to editionSize when created.",
+      "update": "Only the stored artistAddress can update an edition, and updates are allowed only while remaining is greater than 0 so sold-out editions become immutable. Immutable fields marked with ! such as artistAddress, editionSize, remaining, and createdAt cannot be changed after creation, so mutable edits should be limited to metadata fields like description, images, audioUrl, mintAddress, and token naming fields before sellout.",
+      "delete": "Operation disallowed. Editions remain preserved as the source of truth for release metadata and supply history."
+    },
+    "queries": {
+      "getEditionStatus": {
+        "returnType": "String",
+        "query": "(@data.remaining > 0 && 'available') || (@data.remaining == 0 && 'sold_out')"
+      }
+    }
+  },
+  "editions/$editionId/mintNFT/$mintId": {
+    "description": "Onchain passthrough operation that mints the collectible's Metaplex NFT to the buyer during purchase fulfillment.",
+    "fields": {
+      "buyerAddress": "Address!",
+      "metadataUri": "String!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@NFTPlugin.mintNFT($mintId, $editionId, @newData.metadataUri, @newData.buyerAddress)"
+      }
+    },
+    "operationDetails": {
+      "read": "Anyone can read these passthrough mint requests because onchain collections are publicly readable.",
+      "create": "Only the backend vault (PROJECT_VAULT_ADDRESS) can trigger the NFT mint after validating payment. buyerAddress is the destination wallet and metadataUri must be a valid Arweave or IPFS metadata JSON URI for the Metaplex NFT.",
+      "update": "Operation disallowed. Passthrough mint operations execute only on create and cannot be modified afterward.",
+      "delete": "Operation disallowed. Passthrough mint operations cannot be deleted."
+    }
+  },
+  "editions/$editionId/transferToken/$transferId": {
+    "description": "Onchain passthrough operation that transfers the bundled SPL token to the buyer after the collectible NFT is minted.",
+    "fields": {
+      "buyerAddress": "Address!",
+      "amount": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(get(/editions/$editionId).artistAddress, @newData.buyerAddress, get(/editions/$editionId).mintAddress, @newData.amount)"
+      }
+    },
+    "operationDetails": {
+      "read": "Anyone can read these passthrough token transfer requests because onchain collections are public.",
+      "create": "Only the backend vault (PROJECT_VAULT_ADDRESS) can trigger the passthrough token transfer after validating a purchase. This prevents unauthorized transfers of edition tokens from the artist's wallet.",
+      "update": "Operation disallowed. Passthrough transfer operations execute only on create.",
+      "delete": "Operation disallowed. Passthrough transfer operations cannot be removed."
+    }
+  },
+  "editions/$editionId/purchases/$purchaseId": {
+    "description": "Offchain audit trail for individual collectible purchases, including buyer identifiers, order linkage, pricing, and blockchain transaction references.",
+    "fields": {
+      "editionId": "String!",
+      "buyerEmail": "String",
+      "buyerAddress": "String?",
+      "orderId": "String?",
+      "solPrice": "UInt?",
+      "status": "String",
+      "nftMintTx": "String?",
+      "tokenTransferTx": "String?",
+      "createdAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Only ADMIN_ADDRESS and PROJECT_VAULT_ADDRESS can read collectible purchase audit records. This preserves buyer purchase details while still allowing backend processing and admin review.",
+      "create": "Only the backend vault can create purchase records when checkout or fulfillment begins. editionId and createdAt are immutable after creation, buyerEmail is required, and status should be set to values like 'pending', 'completed', or 'failed'.",
+      "update": "Only the backend vault can update purchase records, typically to attach buyerAddress, orderId, solPrice, nftMintTx, tokenTransferTx, or to transition status through the fulfillment lifecycle.",
+      "delete": "Operation disallowed. Purchase audit records are retained permanently for reconciliation and support."
+    }
+  },
+  "songs/$songId/likes/$userAddress": {
+    "description": "Tracks which users have liked which songs. One like per user per song, with the document ID being the user's wallet address as a natural unique constraint.",
+    "fields": {
+      "likedAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "$userAddress == @user.address",
+      "update": "false",
+      "delete": "$userAddress == @user.address"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can see who liked a song.",
+      "create": "Users can only create a like document where the $userAddress path param matches their own wallet address, ensuring one like per user per song.",
+      "update": "Disallowed. Likes are immutable.",
+      "delete": "Users can remove their own likes (unlike)."
+    }
+  },
+  "editions/$editionId/pay/$payId": {
+    "description": "Onchain passthrough that transfers SOL from the buyer to the artist when purchasing an edition. Price and destination are read from the parent edition document so the buyer cannot tamper with either value.",
+    "fields": {},
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@user.address, get(/editions/$editionId).artistAddress, @constants.SOL, get(/editions/$editionId).priceSol)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read.",
+      "create": "Any authenticated user can pay for an edition. The hook reads priceSol and artistAddress from the parent edition document, enforcing the correct payment amount and destination. The buyer cannot tamper with either value.",
+      "update": "Disallowed. Passthrough.",
+      "delete": "Disallowed. Passthrough."
+    }
+  },
+  "packs/$packId": {
+    "description": "Single 'studio' pack tier with open-amount pricing. Customers choose the SOL amount they want to contribute (not locked to fixed price tiers); NFT count, token amount, and payout splits are configured per-pack by admins.",
+    "fields": {
+      "artistPayout": "UInt",
+      "name": "String",
+      "nftCount": "UInt",
+      "platformSlice": "UInt",
+      "priceSol": "UInt",
+      "priceUsd": "UInt",
+      "sortIndex": "Int",
+      "tokenAmount": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view available pack products with pricing, NFT count, token amounts, and payout splits.",
+      "create": "Only ADMIN_ADDRESS or PROJECT_VAULT_ADDRESS can create pack definitions. Configures the studio tier: priceUsd in cents and priceSol in lamports represent reference/minimum pricing (customers choose the actual SOL amount at purchase time), tokenAmount in base units of the song SPL token, artistPayout and platformSlice in cents, sortIndex controls display ordering.",
+      "update": "Only ADMIN_ADDRESS or PROJECT_VAULT_ADDRESS can update pack definitions. sortIndex controls display ordering.",
+      "delete": "Operation disallowed. Pack product definitions are preserved for purchase history integrity."
+    }
+  },
+  "packPurchases/$purchaseId": {
+    "description": "Offchain audit trail for individual pack purchases. Created and managed exclusively by the backend vault during Shopify webhook fulfillment.",
+    "fields": {
+      "artistPayout": "UInt",
+      "buyerAddress": "Address?",
+      "buyerEmail": "String",
+      "createdAt": "UInt",
+      "nftCount": "UInt",
+      "packId": "String",
+      "packName": "String",
+      "platformSlice": "UInt",
+      "shopifyOrderId": "String",
+      "status": "String",
+      "tokenAmount": "UInt",
+      "songId": "String?",
+      "nftTxHashes": "String?",
+      "splTxHash": "String?",
+      "artistPayoutUSD": "UInt?",
+      "artistPayoutSOL": "UInt?",
+      "artistPayoutStatus": "String?",
+      "artistPayoutTxHash": "String?",
+      "solPriceAtPurchase": "UInt?",
+      "creatorFeeBps": "UInt?",
+      "platformFeeBps": "UInt?",
+      "nftRoyaltyBps": "UInt?",
+      "infraTxHash": "String?",
+      "nftFailedCount": "UInt?",
+      "nftType": "String?",
+      "mintType": "String?",
+      "pendingOversold": "String?",
+      "treasuryTxHash": "String?",
+      "walletSource": "String?",
+      "solToArtist": "UInt?",
+      "paymentReconciliation": "String?",
+      "stepTokens": "Bool?",
+      "stepPayout": "Bool?",
+      "stepNft": "Bool?",
+      "stepNotify": "Bool?",
+      "solPriceAtPurchaseUsd": "UInt?",
+      "solPriceTimestamp": "UInt?",
+      "tipPercent": "UInt?",
+      "tipAmountUsd": "UInt?",
+      "buyerTokenAmount": "UInt?",
+      "artistTokenAmount": "UInt?",
+      "treasurySlice": "UInt?",
+      "treasuryFeeBps": "UInt?",
+      "purchaseAmountUsd": "Float?",
+      "reconcileAttempts": "UInt",
+      "shopifyFulfilled": "Bool",
+      "swapTxSig": "String",
+      "bondingCurveBuyId": "String",
+      "artistTokenTxHash": "String",
+      "cancelledAt": "UInt?",
+      "cancelledBy": "Address?",
+      "airdropCompleted": "Bool?",
+      "treasuryTransferCompleted": "Bool?",
+      "infraFeeAccounted": "Bool?",
+      "fundingFeeAccounted": "Bool?",
+      "bondingCurveBuySubmitted": "Bool?",
+      "needsReviewReason": "String?",
+      "failureReason": "String?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "create": "get(/packPurchases/$purchaseId) == null && (@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET)",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET"
+    },
+    "operationDetails": {
+      "read": "PROJECT_VAULT_ADDRESS, OPERATIONS_WALLET, and ADMIN_ADDRESS can read all purchase records for backend fulfillment, retries, and auditing. Backend signs Tarobase requests with PROJECT_VAULT_ADDRESS/OPERATIONS_WALLET (same wallet 9LLTjsWh...) to read purchase state during webhook processing and resume flows.",
+      "create": "The backend signer (either PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET) can create purchase records when Shopify webhooks are received, but ONLY if no document already exists at this path (get(/packPurchases/$purchaseId) == null). Because purchase document IDs are deterministic ('pack-{shopifyOrderId}-{packId}'), this enforces a hard uniqueness constraint on the (shopifyOrderId, packId) tuple at the policy layer — a second creator racing the webhook handler's pre-create existence check will hard-fail rather than silently succeed/overwrite. Accepting both backend constants ensures fulfillment continues to work if OPERATIONS_WALLET is later repointed to a separate signer. Optional fields walletSource, nftType, mintType, infraTxHash, treasuryTxHash, pendingOversold, nftFailedCount, creatorFeeBps, platformFeeBps, treasuryFeeBps, nftRoyaltyBps, solPriceAtPurchaseUsd, solPriceTimestamp, tipPercent, tipAmountUsd, buyerTokenAmount, artistTokenAmount, treasurySlice, purchaseAmountUsd (exact USD amount fan chose to spend, read from Shopify cart attribute amountUsd), and idempotency step flags (stepTokens, stepPayout, stepNft, stepNotify) are written by the backend during fulfillment.",
+      "update": "The backend signer (either PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET) can update purchase records, typically to transition status through the fulfillment lifecycle. Accepting both constants ensures fulfillment continues to work if OPERATIONS_WALLET is later repointed to a separate signer. treasuryFeeBps stores the treasury fee in basis points captured at purchase time alongside creatorFeeBps, platformFeeBps, and nftRoyaltyBps. All fee-bps fields are optional UInt and written by the backend during payout validation. purchaseAmountUsd stores the exact USD amount the fan chose to spend at checkout (source-of-truth for downstream token math). Step flags (stepTokens, stepPayout, stepNft, stepNotify) are toggled to true as each fulfillment step completes; resume endpoint uses these to retry only steps still false. Idempotency flags airdropCompleted, treasuryTransferCompleted, infraFeeAccounted, and fundingFeeAccounted are set to true by fulfillment-steps.ts as each corresponding step (token airdrop, treasury outbound transfer, infra fee accounting, funding fee accounting) succeeds; fulfillment skips already-completed steps on retry. cancelledAt and cancelledBy are set together when an admin cancels a stuck order via the cancel endpoint; status is also set to 'cancelled' in the same write. Webhook re-delivery detection treats records with status='cancelled' as terminal and skips re-fulfillment.",
+      "delete": "Admin-only deletion. PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can delete pack purchase records. Used by the Admin UI's Stuck Orders tab to remove stuck or permanently failed order records that cannot be recovered."
+    }
+  },
+  "chatMessages/$messageId": {
+    "description": "Global and per-song chat messages for the Lit Hub real-time chat system. Messages can belong to the global Lit Hub chat (songId null) or a per-song Artist Room (songId populated).",
+    "fields": {
+      "walletAddress": "Address!",
+      "displayName": "String?",
+      "content": "String!",
+      "songId": "String?",
+      "isPinned": "Bool",
+      "pinnedBy": "Address?",
+      "createdAt": "UInt!",
+      "arenaId": "String?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null && @newData.walletAddress == @user.address",
+      "update": "@user.address == @constants.ADMIN_ADDRESS",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @data.walletAddress"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view chat messages in global Lit Hub or per-song Artist Rooms.",
+      "create": "Authenticated users can post messages. walletAddress must match the caller's wallet to prevent spoofing. songId null means global Lit Hub, populated means an Artist Room scoped to that song. isPinned should default to false on creation.",
+      "update": "Only ADMIN_ADDRESS can update messages, primarily to toggle isPinned and set pinnedBy for message pinning (eligibility validation happens client-side, admin signs the pin action).",
+      "delete": "ADMIN_ADDRESS can moderate by deleting any message. Users can delete their own messages."
+    }
+  },
+  "gmStreaks/$userAddress": {
+    "description": "Tracks daily GM streak for each user. Document ID is the user's wallet address for natural uniqueness. Stores current streak, longest streak, total GMs, and last GM date.",
+    "fields": {
+      "currentStreak": "UInt!",
+      "lastGmDate": "String!",
+      "longestStreak": "UInt!",
+      "totalGms": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "$userAddress == @user.address",
+      "update": "$userAddress == @user.address",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view GM streak data for any user.",
+      "create": "Users create their own streak record on first GM. The $userAddress path param must equal caller's wallet. currentStreak and totalGms should start at 1, longestStreak at 1, and lastGmDate set to today's date string.",
+      "update": "Users update their own streak record when sending subsequent GMs. Frontend logic handles streak continuation vs reset based on lastGmDate comparison to current date.",
+      "delete": "Disallowed. Streak records are permanent."
+    }
+  },
+  "chatReactions/$reactionId": {
+    "description": "Individual reaction records for chat messages. Document ID should be a composite like {messageId}_{walletAddress}_{emoji} using underscores for natural uniqueness (one reaction per user per emoji per message).",
+    "fields": {
+      "messageId": "String!",
+      "walletAddress": "Address!",
+      "emoji": "String!",
+      "createdAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null && @newData.walletAddress == @user.address",
+      "update": "false",
+      "delete": "@user.address == @data.walletAddress"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view message reactions and counts.",
+      "create": "Authenticated users can react to messages. walletAddress must match caller to prevent spoofing. Document ID should be composite {messageId}_{walletAddress}_{emoji} using underscores (not hyphens) for natural dedup.",
+      "update": "Disallowed. Reactions are immutable. Toggle off by deleting.",
+      "delete": "Users can remove their own reactions to toggle them off."
+    }
+  },
+  "arenas/$arenaId": {
+    "description": "Artist Arena room metadata. Each arena is identified by the artist's wallet address and stores display info and song count for the arena chat room.",
+    "fields": {
+      "artistAddress": "Address!",
+      "artistName": "String!",
+      "coverImage": "String?",
+      "songCount": "UInt!",
+      "createdAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null",
+      "update": "$arenaId == @user.address || @user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can browse available artist arenas.",
+      "create": "Authenticated users can create an arena when an artist uploads their first song. artistAddress must match arenaId. songCount starts at 1.",
+      "update": "Only the artist (matching $arenaId), ADMIN_ADDRESS, or PROJECT_VAULT_ADDRESS can update arena metadata like songCount or coverImage.",
+      "delete": "Disallowed. Arenas are permanent."
+    }
+  },
+  "wishlists/$walletAddress": {
+    "description": "User wishlists for songs they want to buy. Keyed by user's wallet address for natural uniqueness, one wishlist per user. songIds stores a JSON-serialized array of song IDs.",
+    "fields": {
+      "songIds": "String",
+      "updatedAt": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "$walletAddress == @user.address",
+      "create": "$walletAddress == @user.address",
+      "update": "$walletAddress == @user.address",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Private. Only the wishlist owner can read their own wishlist, enforced by matching $walletAddress path param to the caller's wallet.",
+      "create": "Users can only create their own wishlist. The $walletAddress path param must equal the caller's wallet address. songIds is a JSON-serialized string array of song IDs. updatedAt is a Unix timestamp in seconds.",
+      "update": "Only the wishlist owner can update their wishlist to add or remove song IDs. songIds and updatedAt are mutable and should be updated together.",
+      "delete": "Disallowed. Wishlists are permanent records. To clear, update songIds to an empty array."
+    }
+  },
+  "follows/$followId": {
+    "description": "Artist follow/subscription records. Document ID ($followId) is a composite of followerAddress and artistAddress (e.g., '{followerAddress}_{artistAddress}') for natural uniqueness — one follow per user per artist.",
+    "fields": {
+      "followerAddress": "Address!",
+      "artistAddress": "Address!",
+      "createdAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null && @newData.followerAddress == @user.address",
+      "update": "false",
+      "delete": "@data.followerAddress == @user.address"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can see who follows which artists.",
+      "create": "Authenticated users can create follow records. followerAddress must match the caller's wallet to prevent spoofing. Document ID should be composite '{followerAddress}_{artistAddress}' using underscores (not hyphens) for natural dedup — one follow per user per artist. All fields are immutable after creation.",
+      "update": "Disallowed. Follow records are immutable — unfollow by deleting.",
+      "delete": "Only the follower (followerAddress matches caller wallet) can delete their follow record to unfollow an artist."
+    }
+  },
+  "comments/$commentId": {
+    "description": "Artist profile comment wall. Users can leave comments on artist profiles. Document ID is a composite string created by the frontend (e.g., '{artistAddress}_{walletAddress}_{timestamp}') but the policy does not enforce the ID format.",
+    "fields": {
+      "walletAddress": "Address!",
+      "displayName": "String?",
+      "content": "String",
+      "artistAddress": "Address!",
+      "createdAt": "UInt!",
+      "isPinned": "Bool"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null && @newData.walletAddress == @user.address",
+      "update": "@user.address == @constants.ADMIN_ADDRESS",
+      "delete": "@user.address == @data.walletAddress || @user.address == @constants.ADMIN_ADDRESS"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view comments on artist profiles.",
+      "create": "Authenticated users can post comments. walletAddress must match the caller's wallet to prevent spoofing. artistAddress indicates which artist profile the comment belongs to. createdAt is a Unix timestamp in seconds and is immutable. content is the comment text (max 280 chars enforced client-side). isPinned defaults to false.",
+      "update": "Only ADMIN_ADDRESS can update comments, primarily to toggle isPinned status. All other fields are immutable (marked with !) except displayName which is mutable.",
+      "delete": "Users can delete their own comments (walletAddress matches caller). ADMIN_ADDRESS can delete any comment for moderation purposes."
+    }
+  },
+  "operationsFulfillmentCosts/$costId": {
+    "description": "Audit trail for pack fulfillment costs - records estimated and actual SOL costs per order for operations wallet monitoring. Created and managed exclusively by the backend vault.",
+    "fields": {
+      "orderId": "String!",
+      "nftCount": "UInt!",
+      "estimatedCostSOL": "UInt!",
+      "actualCostSOL": "UInt?",
+      "timestamp": "UInt!",
+      "status": "String!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "ADMIN_ADDRESS, PROJECT_VAULT_ADDRESS, and OPERATIONS_WALLET can read fulfillment cost records for operations wallet monitoring and auditing. OPERATIONS_WALLET added for forward compatibility in case it later diverges from PROJECT_VAULT_ADDRESS.",
+      "create": "Only the backend vault (PROJECT_VAULT_ADDRESS) or OPERATIONS_WALLET can create fulfillment cost records. orderId, nftCount, estimatedCostSOL, and timestamp are immutable. status must be 'success' or 'insufficient_funds'. actualCostSOL is optional and set post-fulfillment.",
+      "update": "Only the backend vault (PROJECT_VAULT_ADDRESS) or OPERATIONS_WALLET can update records, typically to set actualCostSOL after fulfillment completes.",
+      "delete": "Operation disallowed. Fulfillment cost records are preserved permanently for audit trail."
+    }
+  },
+  "transactionAudits/$auditId": {
+    "description": "Transaction audit log for recording every artist SOL payout attempt with math validation details. Created by webhook backend after payout processing.",
+    "fields": {
+      "artistPayoutCalculated": "UInt",
+      "artistPayoutExpected": "UInt",
+      "artistPayoutSOL": "UInt",
+      "artistPayoutStatus": "String",
+      "artistPayoutUSD": "UInt",
+      "artistPayoutTxHash": "String",
+      "createdAt": "UInt",
+      "discrepancyReason": "String?",
+      "packPriceUsdCents": "UInt",
+      "purchaseId": "String",
+      "shopifyOrderId": "String",
+      "songId": "String",
+      "solPriceUsd": "UInt",
+      "validationPassed": "Bool",
+      "validationTimestamp": "UInt"
+    },
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read access. Anyone can view audit log entries for transparency of payout validation history.",
+      "create": "Backend webhook only. Requires PROJECT_VAULT_ADDRESS authentication. Creates a new audit record with calculated vs expected payout amounts, validation result, and transaction details. All numeric fields are provided by the payout processing webhook.",
+      "update": "Backend webhook only. Requires PROJECT_VAULT_ADDRESS authentication. Can update artistPayoutStatus (e.g., pending -> passed/failed/discrepancy) and add artistPayoutTxHash after the SOL transaction completes. All other fields are immutable.",
+      "delete": "Operation disallowed. Audit log records are permanently immutable for financial compliance and historical tracking."
+    }
+  },
+  "songs/$songId/payouts/$payoutId": {
+    "description": "Artist SOL payout triggered by webhook. Transfers 69% of pack price from OPERATIONS_WALLET to song creator.",
+    "fields": {
+      "recipient": "Address!",
+      "solAmt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.OPERATIONS_WALLET, @newData.recipient, @constants.SOL, @newData.solAmt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect artist payout records.",
+      "create": "Only PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can trigger payout. Called from backend webhook. The hook transfers SOL from OPERATIONS_WALLET to @newData.recipient. solAmt is in lamports.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "songs/$songId/infraFees/$feeId": {
+    "description": "Infrastructure fee 10% of pack price from OPERATIONS_WALLET to infrastructure wallet.",
+    "fields": {
+      "recipient": "Address!",
+      "solAmt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.OPERATIONS_WALLET, @newData.recipient, @constants.SOL, @newData.solAmt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect infrastructure fee records.",
+      "create": "Only PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can trigger payout. Called from backend webhook. The hook transfers SOL from OPERATIONS_WALLET to @newData.recipient. solAmt is in lamports.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "songs/$songId/treasuryFees/$feeId": {
+    "description": "Treasury fee 1% of pack price from OPERATIONS_WALLET to treasury wallet.",
+    "fields": {
+      "recipient": "Address!",
+      "solAmt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.OPERATIONS_WALLET, @newData.recipient, @constants.SOL, @newData.solAmt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect treasury fee records.",
+      "create": "Only PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can trigger payout. Called from backend webhook. The hook transfers SOL from OPERATIONS_WALLET to @newData.recipient. solAmt is in lamports.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "packPurchases/$purchaseId/payouts/$payoutId": {
+    "description": "Artist SOL payout triggered by webhook for pack purchases. Transfers 69% of pack price from OPERATIONS_WALLET to song creator.",
+    "fields": {
+      "recipient": "Address!",
+      "solAmt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.OPERATIONS_WALLET, @newData.recipient, @constants.SOL, @newData.solAmt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect artist payout records.",
+      "create": "Only PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can trigger payout. Called from backend webhook. The hook transfers SOL from OPERATIONS_WALLET to @newData.recipient. solAmt is in lamports.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "packPurchases/$purchaseId/infraFees/$feeId": {
+    "description": "Infrastructure fee 10% of pack price from OPERATIONS_WALLET to infrastructure wallet for pack purchases.",
+    "fields": {
+      "recipient": "Address!",
+      "solAmt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.OPERATIONS_WALLET, @newData.recipient, @constants.SOL, @newData.solAmt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect infrastructure fee records.",
+      "create": "Only PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can trigger payout. Called from backend webhook. The hook transfers SOL from OPERATIONS_WALLET to @newData.recipient. solAmt is in lamports.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "packPurchases/$purchaseId/treasuryFees/$feeId": {
+    "description": "Treasury fee 1% of pack price from OPERATIONS_WALLET to treasury wallet for pack purchases.",
+    "fields": {
+      "recipient": "Address!",
+      "solAmt": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.OPERATIONS_WALLET, @newData.recipient, @constants.SOL, @newData.solAmt)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can inspect treasury fee records.",
+      "create": "Only PROJECT_VAULT_ADDRESS or OPERATIONS_WALLET can trigger payout. Called from backend webhook. The hook transfers SOL from OPERATIONS_WALLET to @newData.recipient. solAmt is in lamports.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "socialLinks/$storageKey": {
+    "description": "Social account linking records created by backend OAuth flow",
+    "fields": {
+      "wallet": "Address",
+      "provider": "String",
+      "profile": "String",
+      "linkedAt": "Int"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @data.wallet || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET"
+    },
+    "operationDetails": {
+      "read": "Users can read their own social links by wallet address match, or backend can read via PROJECT_VAULT_ADDRESS.",
+      "create": "Backend-only creation via PROJECT_VAULT_ADDRESS. Stores wallet, provider, profile JSON, and linkedAt timestamp.",
+      "update": "Backend-only updates via PROJECT_VAULT_ADDRESS.",
+      "delete": "Backend-only deletion via PROJECT_VAULT_ADDRESS."
+    }
+  },
+  "webhookFailures/$failureId": {
+    "description": "Offchain audit log for webhook verification failures (HMAC, signature, parse errors). Backend-only writes; admin-only reads. Used to surface silent failures in an admin UI and to drive Discord alerts when failure clusters are detected.",
+    "fields": {
+      "webhookSource": "String",
+      "path": "String",
+      "failureReason": "String",
+      "errorMessage": "String",
+      "headers": "String",
+      "bodyPreview": "String",
+      "timestamp": "Int",
+      "alertSent": "Bool"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS"
+    },
+    "operationDetails": {
+      "read": "Admin (@constants.ADMIN_ADDRESS) and backend (@constants.PROJECT_VAULT_ADDRESS) only. Admin reads in admin UI to display failures; backend reads to count recent unalerted failures for Discord alert threshold detection. Regular users cannot read these internal failure logs.",
+      "create": "Backend (@constants.PROJECT_VAULT_ADDRESS) and admin (@constants.ADMIN_ADDRESS) only. Backend writes after a webhook (Shopify, Stripe, etc.) fails HMAC/signature/processing verification. Callers must truncate errorMessage and bodyPreview and must NOT include secrets in headers.",
+      "update": "Backend (@constants.PROJECT_VAULT_ADDRESS) and admin (@constants.ADMIN_ADDRESS) only. Backend updates alertSent to true once Discord notified. Admin may resolve records during cleanup.",
+      "delete": "Admin (@constants.ADMIN_ADDRESS) only. Used for cleanup/debugging of resolved failures. Regular users and backend cannot delete records."
+    }
+  },
+  "albums/$albumId": {
+    "description": "Album token collection. Each album is launched as a tradable SPL token via PumpFunPlugin with automatic bonding curve, mirroring the songs pattern. Albums act as containers/access tokens for a curated set of songs that may be private until graduated to public.",
+    "fields": {
+      "name": "String!",
+      "symbol": "String!",
+      "uri": "String!",
+      "creator": "Address!",
+      "coverArtUrl": "String?",
+      "slotCount": "UInt!",
+      "description": "String?"
+    },
+    "onchain": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @newData.creator || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "update": "@user.address == @data.creator || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@PumpFunPlugin.createToken($albumId, @newData.name, @newData.symbol, @newData.uri, @user.address)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view album token data, bonding curve progress, creator fees, and token balances via queries.",
+      "create": "Authenticated artists can create their own album token when creator matches their wallet. ADMIN_ADDRESS and PROJECT_VAULT_ADDRESS can also create albums for bootstrap or seed data. The uri field must be a Metaplex-standard JSON metadata URL; the PumpFunPlugin hook launches the album token on Pump.fun with automatic bonding curve. slotCount defines how many song slots the album will hold (e.g., 8 or 12). Use getTokenMintAddress to retrieve the resulting mint.",
+      "update": "Creator (artist), PROJECT_VAULT_ADDRESS, or ADMIN_ADDRESS can update mutable metadata fields like coverArtUrl, description, and slotCount. Token-defining fields (name/symbol/uri/creator) are readonly. No on-chain hook on update.",
+      "delete": "Disallowed. Album tokens cannot be destroyed."
+    },
+    "queries": {
+      "getTokenMintAddress": {
+        "returnType": "String",
+        "query": "@TokenPlugin.getTokenMintAddress($albumId, @data.name, @data.symbol)"
+      },
+      "getBondingCurveProgress": {
+        "returnType": "UInt",
+        "query": "@PumpFunPlugin.getBondingCurveProgress(@TokenPlugin.getTokenMintAddress($albumId, @data.name, @data.symbol))"
+      },
+      "getCreatorFee": {
+        "returnType": "UInt",
+        "query": "@PumpFunPlugin.getCreatorFee(@TokenPlugin.getTokenMintAddress($albumId, @data.name, @data.symbol))"
+      },
+      "getTokenBalance": {
+        "returnType": "UInt",
+        "query": "@TokenPlugin.getBalance(@newData.walletAddress, @TokenPlugin.getTokenMintAddress($albumId, @data.name, @data.symbol))"
+      }
+    }
+  },
+  "listeningHistory/$userId/genres/$genre": {
+    "description": "Per-user, per-genre listening history used to compute genre affinity for the Made For You section on Discover. Document ID path is keyed by the listener wallet ($userId) and the genre name ($genre) so a single user's full per-genre history can be fetched with a wildcard query, and a single (user, genre) row can be incremented cheaply when a song plays.",
+    "fields": {
+      "userId": "Address",
+      "genre": "String",
+      "playCount": "UInt",
+      "lastPlayedAt": "UInt"
+    },
+    "rules": {
+      "read": "true",
+      "create": "@user.address == $userId && @newData.userId == $userId && @newData.genre == $genre",
+      "update": "@user.address == $userId",
+      "delete": "@user.address == $userId"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone (including unauthenticated viewers) can read listening history records so Made For You queries and aggregate views work for any signed-in user. Returns userId, genre, playCount, lastPlayedAt.",
+      "create": "Authenticated user only — the caller's wallet must equal the $userId path segment. The userId field must match $userId and the genre field must match $genre to keep the document body consistent with its path. Frontend writes this record the first time a user plays a song in a given genre (playCount typically initialized to 1, lastPlayedAt to current Unix seconds).",
+      "update": "Only the owning user (@user.address == $userId) can update. Used by the frontend on each subsequent play to increment playCount and refresh lastPlayedAt (Unix seconds) for that (user, genre) pair.",
+      "delete": "Only the owning user (@user.address == $userId) can delete their own history record. No admin or backend deletion path."
+    }
+  },
+  "playlistSongs/$userAddress/songs/$songId": {
+    "description": "Per-user playlist entries. Each user has exactly ONE playlist site-wide, stored as a flat list of (user, song) entries under their wallet address. One document per (user, song) pair. Entries can be reordered by the owner via the `position` field, but other fields (userAddress, songId, addedAt) are immutable once added.",
+    "fields": {
+      "userAddress": "Address!",
+      "songId": "String!",
+      "addedAt": "UInt!",
+      "position": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @newData.userAddress && $userAddress == @newData.userAddress",
+      "update": "@user.address == $userAddress && @user.address == @newData.userAddress && @data.songId == @newData.songId && @data.addedAt == @newData.addedAt",
+      "delete": "@user.address == $userAddress"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view any user's playlist (it shows on their profile). Sort client-side by `position` ascending for queue order.",
+      "create": "Only the user themselves can add songs to their own playlist. The $userAddress path segment must equal @newData.userAddress, which must equal @user.address. userAddress and songId are immutable (readonly). addedAt is an immutable Unix timestamp in seconds set on creation. The client must supply a `position` (UInt) representing the sort index within the user's playlist (lower = earlier in the queue).",
+      "update": "Only the owner ($userAddress == @user.address) can update their own playlist entry. Only the `position` field may change — userAddress, songId, and addedAt must remain identical between @data and @newData. Used for reordering songs within the playlist.",
+      "delete": "Only the user themselves can remove songs from their own playlist (the $userAddress path segment must equal @user.address)."
+    }
+  },
+  "beamUpRequests/$requestId": {
+    "description": "Fan-initiated requests to 'beam up' a streaming-only song to a mintable SPL/NFT asset. Tracks who requested the upgrade, optional gas contribution, and approval status from the song artist.",
+    "fields": {
+      "songId": "String",
+      "requesterWallet": "Address",
+      "requesterEmail": "String?",
+      "gasTxHash": "String?",
+      "status": "String",
+      "createdAt": "Int"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @newData.requesterWallet",
+      "update": "@user.address == get(/songs/@newData.songId).creator || (@user.address == @data.requesterWallet && @data.status == 'pending')",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public. Anyone can view beam-up requests to see demand for upgrading streaming songs to mintable assets.",
+      "create": "Authenticated users can create a beam-up request for any song. Caller must equal @newData.requesterWallet so users can only file requests on their own behalf. Optional email and gas transaction hash can be attached.",
+      "update": "Two parties can update: (1) the song's artist (matched via get(/songs/<songId>).creator) can approve/reject/complete the request by changing status; (2) the original requester can edit their own request only while status is still 'pending'. The songId field is expected to remain stable; status flows pending -> approved/rejected -> completed.",
+      "delete": "Disallowed. Beam-up requests are kept as an immutable audit trail of fan demand."
+    }
+  },
+  "reposts/$repostId": {
+    "description": "Tracks reposts of songs by users. Used to count reposts per song and list a user's reposts on their profile. Public read for leaderboards/counts; create restricted to the reposter; immutable updates; only the reposter can delete (un-repost).",
+    "fields": {
+      "songId": "String",
+      "reposterAddress": "Address",
+      "createdAt": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null && @newData.reposterAddress == @user.address",
+      "update": "false",
+      "delete": "@user.address == @data.reposterAddress"
+    },
+    "operationDetails": {
+      "read": "Anyone can read all reposts. Used for public reposter lists, per-song repost counts on leaderboards, and per-user repost lists on profiles.",
+      "create": "Any authenticated user can create a repost. Caller must set reposterAddress to their own wallet (@newData.reposterAddress == @user.address). Frontend should set createdAt to current Unix seconds. Document ID is application-defined (typically '{songId}_{reposterAddress}' or a generated id).",
+      "update": "Operation disallowed. Reposts are immutable once created.",
+      "delete": "Only the original reposter (@user.address == @data.reposterAddress) can delete their own repost, enabling un-repost behavior. Admin cannot delete on behalf of users."
+    }
+  },
+  "songStreams/$songId": {
+    "description": "Tracks total stream count per song. Only backend (PROJECT_VAULT_ADDRESS) can create/increment to prevent users from inflating counts. Public readable for leaderboard display.",
+    "fields": {
+      "count": "UInt",
+      "lastStreamedAt": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Anyone can read stream counts. Used for leaderboard and LiveChartCard display.",
+      "create": "Only backend (signed with PROJECT_VAULT_ADDRESS) can create the initial stream record for a song. Frontend must call a backend route which validates and creates the record.",
+      "update": "Only backend (signed with PROJECT_VAULT_ADDRESS) can increment count and update lastStreamedAt. Prevents users from inflating their own counts.",
+      "delete": "Operation disallowed. Stream counts are permanent for leaderboard integrity."
+    }
+  },
+  "failedFulfillments/$fulfillmentId": {
+    "description": "Admin retry queue for failed purchase fulfillments. Backend writes records here when ANY step (fee transfer, airdrop, or both) fails during pack/song purchase fulfillment, ensuring all-or-nothing atomicity per project policy. Admin can read, retry, and resolve entries.",
+    "fields": {
+      "purchaseId": "String!",
+      "purchaseSource": "String!",
+      "buyerAddress": "Address!",
+      "songId": "String!",
+      "packId": "String!",
+      "usdAmount": "UInt",
+      "solAmount": "UInt?",
+      "failureStage": "String",
+      "failureReason": "String",
+      "retryCount": "UInt",
+      "lastRetryAt": "UInt?",
+      "resolvedAt": "UInt?",
+      "createdAt": "UInt!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS"
+    },
+    "operationDetails": {
+      "read": "Admin only. ADMIN_ADDRESS reads the failed-fulfillment queue for review and retry decisions. No other roles can read (contains sensitive purchase + failure-reason data).",
+      "create": "PROJECT_VAULT_ADDRESS (backend) only. Backend writes one record per fulfillment failure with purchaseId, buyerAddress, songId, packId, financial details, and failureStage ('fee-transfer' | 'airdrop' | 'both' | 'unknown'). purchaseId is immutable; retryCount starts at 0. createdAt is required (Unix seconds).",
+      "update": "PROJECT_VAULT_ADDRESS (backend) only. Backend increments retryCount, sets lastRetryAt, and sets resolvedAt (Unix seconds) when a retry succeeds. failureStage / failureReason may be updated to reflect the most recent retry attempt.",
+      "delete": "ADMIN_ADDRESS only. Admin can clear resolved entries from the queue manually after confirming successful retry."
+    }
+  },
+  "processedSolSignatures/$signature": {
+    "description": "Anti-replay protection record for Solana transaction signatures consumed by POST /api/direct-sol-purchase. Once the backend verifies a Solana tx signature via RPC, it writes a record here keyed by signature so duplicate submissions are rejected (immutable audit log).",
+    "fields": {
+      "signature": "String",
+      "walletAddress": "Address",
+      "usdAmount": "String",
+      "lamports": "UInt",
+      "purchaseId": "String?",
+      "processedAt": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "(@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET) && $signature == @newData.signature",
+      "update": "false",
+      "delete": "@user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET"
+    },
+    "operationDetails": {
+      "read": "Anyone can read. Audit log contains no secrets - only public Solana tx signature, wallet address, verified USD/lamport amounts, optional purchaseId link, and processedAt timestamp. Used for audit, debugging, and lookup of consumed signatures.",
+      "create": "Backend-only (Cloudflare Worker signs Tarobase requests with PROJECT_VAULT_PRIVATE_KEY, so @user.address resolves to @constants.PROJECT_VAULT_ADDRESS). Caller must pass the Solana tx signature as both the document ID ($signature) and the signature field - they must match. Backend writes this AFTER successful RPC verification of the on-chain transfer. Any subsequent write with the same signature will fail (duplicate key) - this is the anti-replay guarantee. processedAt is a Unix-seconds timestamp (UInt), NOT milliseconds.",
+      "update": "Operation disallowed. Records are immutable once written - this immutability is the core anti-replay guarantee. To link a purchaseId after the fact, the backend must include it on the initial create.",
+      "delete": "Backend-only (Cloudflare Worker signs Tarobase requests with PROJECT_VAULT_PRIVATE_KEY, so @user.address resolves to @constants.PROJECT_VAULT_ADDRESS). Used by a weekly Heartbeat task to prune entries older than 90 days, keeping this anti-replay audit log bounded. Old entries are safe to remove once the chargeback/replay window has passed - any reasonable replay attempt would have surfaced well before then."
+    }
+  },
+  "recoveryTransfers/$recoveryId": {
+    "description": "Admin-only onchain recovery transfers. Replaces the legacy raw-signed SPL transfer in the admin recovery API route. Creating a document atomically transfers @newData.amount of @newData.mintAddress from PROJECT_VAULT_ADDRESS to @newData.buyerAddress via @TokenPlugin.transfer, enforcing policy/audit/immutability the same way every other vault-signed token movement in this app does (see songs/$songId/airdrops/$airdropId).",
+    "fields": {
+      "purchaseId": "String!",
+      "buyerAddress": "Address!",
+      "mintAddress": "Address!",
+      "amount": "UInt!",
+      "reason": "String!",
+      "status": "String!",
+      "txSignature": "String?",
+      "createdAt": "UInt!",
+      "createdBy": "Address!"
+    },
+    "onchain": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.ADMIN_ADDRESS && @newData.createdBy == @constants.ADMIN_ADDRESS",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@constants.PROJECT_VAULT_ADDRESS, @newData.buyerAddress, @newData.mintAddress, @newData.amount)"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read (required because onchain data is inherently public on the blockchain). Anyone can inspect recovery transfer records. Sensitive operational context lives in the offchain packPurchases/$purchaseId record referenced by purchaseId.",
+      "create": "ONLY @constants.ADMIN_ADDRESS may create a recovery transfer. Admin MUST set createdBy == @constants.ADMIN_ADDRESS at create time (rule-enforced, prevents impersonation in audit trail). Creating the document atomically invokes the onchain hook: @TokenPlugin.transfer(PROJECT_VAULT_ADDRESS, buyerAddress, mintAddress, amount) — same vault-signing convention as songs/$songId/airdrops/$airdropId. If the transfer fails, document creation fails (atomic). If the document exists, the transfer succeeded onchain — admin should set status='pending' at create time; the real onchain success signal is the auto-populated tarobase_transaction_hash field. The optional txSignature field is reserved for callers who want to denormalize the signature at create time; otherwise rely on tarobase_transaction_hash. createdAt is Unix seconds at create. reason is a short admin-supplied tag (e.g. 'stuck_after_swap', 'partial_failure_recovery'). amount is in the token's smallest base units (matches songs/$songId/airdrops/$airdropId convention). purchaseId references the packPurchases/$purchaseId document being recovered.",
+      "update": "Disallowed. Recovery records are immutable to preserve the audit trail. The 'status' field is set once at create time; downstream consumers should treat the existence of the document + tarobase_transaction_hash as proof of completion rather than reading a mutable status field.",
+      "delete": "Disallowed. Recovery records must be preserved indefinitely as an audit trail of admin-mediated vault movements."
+    }
+  },
+  "priceHistory/$snapshotId": {
+    "description": "Time-series price snapshots for song tokens, recorded on each trade. Frontend creates these entries after swap/buy transactions to maintain price history for charts and analytics.",
+    "fields": {
+      "bondingCurveProgress": "UInt?",
+      "createdAt": "UInt?",
+      "marketCap": "UInt?",
+      "price": "UInt?",
+      "songId": "String",
+      "totalSupply": "UInt?",
+      "volume24h": "UInt?"
+    },
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+      "update": "false",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can view price history data for charting and analytics. Returns all price snapshots ordered by createdAt.",
+      "create": "Backend-only (PROJECT_VAULT_ADDRESS). Price snapshots are created by the server after swap/buy transactions. Prevents bot spam and fake price data injection.",
+      "update": "Operation disallowed. Price snapshots are immutable historical records to ensure data integrity for charts and analytics.",
+      "delete": "Admin only. Reserved for data correction or cleanup."
+    }
+  },
+  "walletTransfers/$transferId": {
+    "description": "Audit log for user-initiated wallet-to-wallet SOL transfers. Records are created from the frontend after a successful Phantom-signed transaction. Each user can only create records for their own sends (fromAddress must match their wallet address).",
+    "fields": {
+      "fromAddress": "Address!",
+      "toAddress": "Address!",
+      "amountLamports": "UInt!",
+      "amountSol": "String!",
+      "signature": "String",
+      "tokenType": "String!",
+      "status": "String",
+      "createdAt": "UInt!",
+      "amountUsdc": "String?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null && (@user.address == @newData.fromAddress || @user.address == @constants.PROJECT_VAULT_ADDRESS)",
+      "update": "@user.address != null && @user.address == @constants.PROJECT_VAULT_ADDRESS",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Publicly readable. Anyone can view the transfer audit log for transparency.",
+      "create": "Authenticated users can create records for their own sends (fromAddress must match their wallet). The backend vault (PROJECT_VAULT_ADDRESS) can also create pending records on behalf of users during the server-side prepare flow.",
+      "update": "Backend vault only (PROJECT_VAULT_ADDRESS). Updates status from pending to confirmed/failed and sets the transaction signature after the user signs and broadcasts the transfer.",
+      "delete": "Operation disallowed. Permanent record for audit trail purposes."
+    }
+  },
+  "songs/$songId/usdcBuys/$buyId": {
+    "description": "Buy song tokens with USDC via Jupiter aggregator, with USDC platform fee.",
+    "fields": {
+      "usdcAmt": "UInt!",
+      "slip": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "(@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true) && (@DeFiPlugin.swap(@user.address, @constants.USDC, @TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @newData.usdcAmt) && @TokenPlugin.transfer(@user.address, @constants.PROJECT_VAULT_ADDRESS, @constants.USDC, @newData.usdcAmt * @constants.PLATFORM_FEE_BPS // 10000))"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read.",
+      "create": "Any user can buy song tokens with USDC when PLATFORM_PAUSED is false and the song's paused field is not true. usdcAmt is in micro-USDC (1 USDC = 1000000). slip is slippage in basis points (500 = 5%). Uses DeFiPlugin.swap to route USDC through Jupiter for token purchase. A 2% platform fee (PLATFORM_FEE_BPS / 10000) in USDC is automatically transferred from the buyer to PROJECT_VAULT_ADDRESS.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "songs/$songId/usdcSells/$sellId": {
+    "description": "Sell song tokens for USDC via Jupiter aggregator, with USDC platform fee.",
+    "fields": {
+      "tokenAmt": "UInt!",
+      "slip": "UInt!"
+    },
+    "onchain": true,
+    "isPassthrough": true,
+    "rules": {
+      "read": "true",
+      "create": "@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "(@constants.PLATFORM_PAUSED != \"true\" && get(/songs/$songId).paused != true) && (@DeFiPlugin.swap(@user.address, @TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @constants.USDC, @newData.tokenAmt) && @TokenPlugin.transfer(@user.address, @constants.PROJECT_VAULT_ADDRESS, @constants.USDC, @MathPlugin.mulDivFloor(@DeFiPlugin.getSwapQuote(@TokenPlugin.getTokenMintAddress($songId, get(/songs/$songId).name, get(/songs/$songId).symbol), @constants.USDC, @newData.tokenAmt), @constants.PLATFORM_FEE_BPS, 10000)))"
+      }
+    },
+    "operationDetails": {
+      "read": "Public read.",
+      "create": "Any user can sell song tokens for USDC when PLATFORM_PAUSED is false and the song's paused field is not true. tokenAmt is the number of song tokens to sell (in base units with 6 decimals). slip is slippage in basis points (500 = 5%). Uses DeFiPlugin.swap to route tokens through Jupiter for USDC. A 2% platform fee (PLATFORM_FEE_BPS / 10000) in USDC is automatically transferred from the seller to PROJECT_VAULT_ADDRESS. The fee is calculated on the expected USD value of the tokens sold, determined by @DeFiPlugin.getSwapQuote at execution time, using @MathPlugin.mulDivFloor for overflow-safe precision.",
+      "update": "Disallowed. Passthrough collection.",
+      "delete": "Disallowed. Passthrough collection."
+    }
+  },
+  "curatedTrending/$songId": {
+    "description": "Admin-curated list of trending songs/tokens displayed on the homepage. Document ID is the songId, enforcing uniqueness (a song can only appear once in the trending list). Admin can drag-to-reorder entries by updating the optional `order` field (lower = displayed first); other fields are immutable.",
+    "fields": {
+      "songId": "String!",
+      "addedAt": "UInt!",
+      "addedBy": "Address!",
+      "order": "UInt?"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == @constants.ADMIN_ADDRESS && @newData.songId == $songId && @newData.addedBy == @user.address && get(/songs/$songId) != null",
+      "update": "@user.address == @constants.ADMIN_ADDRESS && @newData.songId == @data.songId && @newData.addedBy == @data.addedBy && @newData.addedAt == @data.addedAt",
+      "delete": "@user.address == @constants.ADMIN_ADDRESS"
+    },
+    "operationDetails": {
+      "read": "Public. Anyone can read curated trending entries (used by homepage Trending section).",
+      "create": "Admin only (@user.address must equal @constants.ADMIN_ADDRESS). Document ID is the songId, enforcing uniqueness. Validates that the referenced song exists in /songs/$songId. The addedBy field must equal the caller's wallet, and songId must equal the document path segment. The `order` field is optional on create.",
+      "update": "Admin only (@user.address must equal @constants.ADMIN_ADDRESS). Used for manual drag-to-reorder: admin updates the optional `order` field (lower = displayed first). Immutable fields (songId, addedBy, addedAt) cannot change — the rule enforces that @newData values for these fields equal the existing @data values, so effectively only `order` can be modified.",
+      "delete": "Admin only (@user.address must equal @constants.ADMIN_ADDRESS). Removes the song from the curated trending list."
+    }
+  },
+  "userTokenLots/$userAddress/lots/$lotId": {
+    "description": "Tracks each token acquisition as a tax lot for per-user cost basis tracking. Created by frontend after successful buys/swaps/airdrops/pack purchases.",
+    "fields": {
+      "tokenMint": "Address!",
+      "songId": "String!",
+      "songName": "String!",
+      "songSymbol": "String!",
+      "quantity": "UInt!",
+      "remainingQuantity": "UInt!",
+      "costBasisAmount": "UInt!",
+      "costBasisCurrency": "String!",
+      "acquiredAt": "UInt!",
+      "source": "String!",
+      "txSignature": "String!",
+      "pricePerToken": "String!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == $userAddress",
+      "update": "@user.address == $userAddress",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Anyone can read lot records. Public for portfolio transparency.",
+      "create": "Authenticated users only. Caller must equal $userAddress. Frontend creates a lot after each successful token acquisition (buy, swap, airdrop, pack).",
+      "update": "Owner only ($userAddress). Used to decrement remainingQuantity when tokens from this lot are sold. No other fields should change.",
+      "delete": "Disallowed. Lots are immutable for audit and cost basis accuracy."
+    }
+  },
+  "userRealizedPnL/$userAddress/events/$eventId": {
+    "description": "Tracks each realized gain/loss event when tokens are sold. Created by frontend after successful sells/swaps. Immutable once recorded.",
+    "fields": {
+      "tokenMint": "Address!",
+      "songId": "String!",
+      "songName": "String!",
+      "songSymbol": "String!",
+      "lotIds": "String!",
+      "totalSoldQuantity": "UInt!",
+      "totalCostBasis": "UInt!",
+      "totalSaleProceeds": "UInt!",
+      "currency": "String!",
+      "realizedPnL": "Int!",
+      "realizedAt": "UInt!",
+      "source": "String!",
+      "txSignature": "String!"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "true",
+      "create": "@user.address == $userAddress",
+      "update": "false",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Anyone can read realized PnL events. Public for portfolio transparency.",
+      "create": "Authenticated users only. Caller must equal $userAddress. Frontend creates a PnL event after each successful sell, calculating gain/loss from consumed lots.",
+      "update": "Disallowed. Realized PnL events are immutable for tax and audit accuracy.",
+      "delete": "Disallowed. Realized PnL events are permanent for tax and audit accuracy."
+    }
+  },
+  "streamEvents/$eventId": {
+    "description": "Individual song play/stream events for time-series analytics and listener behavior tracking.",
+    "fields": {
+      "songId": "String",
+      "userAddress": "Address",
+      "duration": "UInt",
+      "timestamp": "UInt",
+      "source": "String"
+    },
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@newData.userAddress == @user.address || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "false",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Admin, project vault, and operations wallet only. Raw stream events used for time-series analytics dashboards.",
+      "create": "Authenticated users can log their own streams (userAddress must match caller wallet). Backend vault and operations wallet can also log on behalf of users.",
+      "update": "Disallowed. Stream events are immutable once created.",
+      "delete": "Disallowed. Stream events are immutable for audit trail."
+    }
+  },
+  "supportTickets/$ticketId": {
+    "description": "User-submitted support and DMCA takedown requests. Differentiated by type field.",
+    "fields": {
+      "type": "String",
+      "subject": "String",
+      "message": "String",
+      "status": "String",
+      "userAddress": "Address?",
+      "userEmail": "String",
+      "claimantName": "String?",
+      "contentUrl": "String?",
+      "originalWorkUrl": "String?",
+      "goodFaithStatement": "Bool?",
+      "priority": "String",
+      "adminNotes": "String?",
+      "resolution": "String?",
+      "createdAt": "UInt",
+      "resolvedAt": "UInt?"
+    },
+    "rules": {
+      "read": "@user.address == @data.userAddress || @user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address != null || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Ticket owner (matching userAddress), admin, project vault, and operations wallet. Anonymous DMCA tickets with null userAddress are readable by admin/backend only.",
+      "create": "Any authenticated user (wallet-connected) or backend vault/operations wallet can create tickets. Frontend should enforce DMCA field completeness.",
+      "update": "Admin or backend vault/operations only. Used for status changes, priority updates, admin notes, and resolutions.",
+      "delete": "Disallowed. Tickets are retained for audit and compliance."
+    }
+  },
+  "errorLogs/$logId": {
+    "description": "Centralized error log collection for frontend and backend errors, warnings, and informational events.",
+    "fields": {
+      "level": "String",
+      "message": "String",
+      "stack": "String?",
+      "context": "String?",
+      "source": "String",
+      "userAddress": "Address?",
+      "createdAt": "UInt",
+      "environment": "String",
+      "appVersion": "String",
+      "resolved": "Bool"
+    },
+    "rules": {
+      "read": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "create": "@user.address != null || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "update": "@user.address == @constants.ADMIN_ADDRESS || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Admin, project vault, and operations wallet only. Sensitive error details are not publicly accessible.",
+      "create": "Any authenticated user or backend vault/operations wallet can report errors. Frontend should capture component and action context.",
+      "update": "Admin or backend vault/operations only. Used to mark errors as resolved or add resolution notes.",
+      "delete": "Disallowed. Error logs are immutable for incident tracking and post-mortems."
+    }
+  },
+  "notifications/$notificationId": {
+    "description": "Offchain notification documents for the Lit Studio music platform. Each document represents a single notification sent to a user (recipient) about an event triggered by another user or the system (actor). Types include likes, follows, reposts, and stream milestones.",
+    "fields": {
+      "recipientAddress": "Address",
+      "type": "String",
+      "actorAddress": "String",
+      "actorName": "String",
+      "referenceId": "String",
+      "referenceTitle": "String",
+      "message": "String",
+      "isRead": "Bool",
+      "createdAt": "UInt"
+    },
+    "rules": {
+      "read": "@user.address == @data.recipientAddress",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+      "update": "@user.address == @data.recipientAddress",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Only the recipient of the notification can read it. Authenticated users querying this collection will only see notifications where their wallet address matches recipientAddress.",
+      "create": "Only the backend server (PROJECT_VAULT_ADDRESS) can create notifications. Frontend clients cannot create notifications directly; they are generated server-side in response to platform events.",
+      "update": "Only the recipient can update their own notifications. The typical use case is marking isRead from false to true. No other fields should be modified by recipients.",
+      "delete": "Deletes are disallowed. Notifications are retained as an immutable history for audit and user reference."
+    }
+  },
+  "usernames/$username": {
+    "description": "Uniqueness-enforcing reverse lookup table mapping usernames to wallet addresses.",
+    "fields": {
+      "userAddress": "Address!",
+      "createdAt": "UInt"
+    },
+    "rules": {
+      "read": "true",
+      "create": "@newData.userAddress == @user.address || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "update": "@data.userAddress == @user.address || @user.address == @constants.PROJECT_VAULT_ADDRESS || @user.address == @constants.OPERATIONS_WALLET || @user.address == @constants.ADMIN_ADDRESS",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Public read. Anyone can look up which wallet address owns a username.",
+      "create": "Users can claim a username by creating a document with their wallet address as userAddress. Backend (PROJECT_VAULT_ADDRESS, OPERATIONS_WALLET) and ADMIN_ADDRESS can also create username mappings.",
+      "update": "Username mapping can be updated by the owner of the wallet address, or by backend/admin accounts.",
+      "delete": "Disallowed. Username mappings are permanent to preserve audit trail."
+    }
+  },
+  "portfolioHistory/$userAddress/snapshots/$snapshotId": {
+    "description": "Historical portfolio value snapshots per user",
+    "fields": {
+      "valueUsd": "UInt",
+      "solValue": "UInt",
+      "tokenValue": "UInt",
+      "timestamp": "UInt"
+    },
+    "onchain": false,
+    "rules": {
+      "read": "@user.address == $userAddress",
+      "create": "@user.address == $userAddress",
+      "update": "@user.address == $userAddress",
+      "delete": "@user.address == $userAddress"
+    },
+    "operationDetails": {
+      "read": "Users can only read their own portfolio history snapshots.",
+      "create": "Users can only create snapshots for their own address.",
+      "update": "Users can only update their own snapshots.",
+      "delete": "Users can only delete their own snapshots."
+    }
+  },
+  "applePayDailyBudget/$date": {
+    "description": "Daily Apple Pay spending tracker to enforce a $300/day cap. One record per calendar day, keyed by ISO date string.",
+    "fields": {
+      "date": "String",
+      "reservedUsd": "Int",
+      "fulfilledUsd": "Int",
+      "reservations": "String",
+      "updatedAt": "Int"
+    },
+    "rules": {
+      "read": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+      "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+      "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+      "delete": "false"
+    },
+    "operationDetails": {
+      "read": "Backend only. PROJECT_VAULT_ADDRESS reads the day's record before creating Shopify checkouts to enforce the daily spending cap.",
+      "create": "Backend only. PROJECT_VAULT_ADDRESS creates the day's record on first checkout of the day with initial reservedUsd=0, fulfilledUsd=0, reservations='[]'.",
+      "update": "Backend only. PROJECT_VAULT_ADDRESS updates reservedUsd (increment on checkout creation, decrement on fulfillment/expiration) and fulfilledUsd (increment on webhook fulfillment). Also updates reservations JSON and updatedAt.",
+      "delete": "Disallowed. Daily budget records are retained for audit and reconciliation."
+    }
+  },
+  "userSolTransfers/$transferId": {
+    "description": "Onchain user-initiated SOL transfers. Minimal onchain collection that triggers a real SOL token movement from the user's wallet to a recipient via TokenPlugin hook.",
+    "fields": {
+      "toAddress": "Address!",
+      "amountLamports": "UInt!",
+      "createdAt": "UInt!"
+    },
+    "onchain": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@user.address, @newData.toAddress, @constants.SOL, @newData.amountLamports)"
+      }
+    },
+    "operationDetails": {
+      "read": "Publicly readable onchain transfer record. Anyone can verify the transfer.",
+      "create": "Authenticated users only. Transfers SOL from the caller's wallet to the specified toAddress. Amount must be provided in lamports (base units). Hook executes the actual onchain SOL transfer via TokenPlugin.",
+      "update": "Operation disallowed. Transfer records are immutable.",
+      "delete": "Operation disallowed. Onchain financial records are permanent."
+    }
+  },
+  "userTokenTransfers/$transferId": {
+    "description": "Onchain user-initiated SPL token transfers (USDC, song tokens, etc.). Minimal onchain collection that triggers a real SPL token movement from the user's wallet to a recipient via TokenPlugin hook.",
+    "fields": {
+      "toAddress": "Address!",
+      "mintAddress": "Address!",
+      "amount": "UInt!",
+      "createdAt": "UInt!"
+    },
+    "onchain": true,
+    "rules": {
+      "read": "true",
+      "create": "@user.address != null",
+      "update": "false",
+      "delete": "false"
+    },
+    "hooks": {
+      "onchain": {
+        "create": "@TokenPlugin.transfer(@user.address, @newData.toAddress, @newData.mintAddress, @newData.amount)"
+      }
+    },
+    "operationDetails": {
+      "read": "Publicly readable onchain transfer record. Anyone can verify the token transfer.",
+      "create": "Authenticated users only. Transfers SPL tokens from the caller's wallet to the specified toAddress. Amount must be provided in the token's base units. Hook executes the actual onchain token transfer via TokenPlugin.",
+      "update": "Operation disallowed. Transfer records are immutable.",
+      "delete": "Operation disallowed. Onchain financial records are permanent."
+    }
+  }
+}

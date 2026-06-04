@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="hsl(260, 85%, 4%)" />
+      <stop offset="50%" stop-color="hsl(258, 80%, 7%)" />
+      <stop offset="100%" stop-color="hsl(260, 85%, 3%)" />
+    </linearGradient>
+    <linearGradient id="purpleGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="hsl(263, 80%, 65%)" stop-opacity="0" />
+      <stop offset="30%" stop-color="hsl(263, 80%, 65%)" stop-opacity="1" />
+      <stop offset="70%" stop-color="hsl(295, 85%, 62%)" stop-opacity="1" />
+      <stop offset="100%" stop-color="hsl(295, 85%, 62%)" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e0d0ff" />
+    </linearGradient>
+    <radialGradient id="glowOrb1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="hsl(263, 80%, 65%)" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="hsl(263, 80%, 65%)" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowOrb2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="hsl(295, 85%, 62%)" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="hsl(295, 85%, 62%)" stop-opacity="0" />
+    </radialGradient>
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <!-- Ambient glow orbs -->
+  <ellipse cx="300" cy="200" rx="400" ry="300" fill="url(#glowOrb1)" />
+  <ellipse cx="900" cy="450" rx="350" ry="250" fill="url(#glowOrb2)" />
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.04" stroke="hsl(263, 80%, 65%)" stroke-width="0.5" fill="none">
+    <line x1="0" y1="0" x2="0" y2="630" /><line x1="60" y1="0" x2="60" y2="630" />
+    <line x1="120" y1="0" x2="120" y2="630" /><line x1="180" y1="0" x2="180" y2="630" />
+    <line x1="240" y1="0" x2="240" y2="630" /><line x1="300" y1="0" x2="300" y2="630" />
+    <line x1="360" y1="0" x2="360" y2="630" /><line x1="420" y1="0" x2="420" y2="630" />
+    <line x1="480" y1="0" x2="480" y2="630" /><line x1="540" y1="0" x2="540" y2="630" />
+    <line x1="600" y1="0" x2="600" y2="630" /><line x1="660" y1="0" x2="660" y2="630" />
+    <line x1="720" y1="0" x2="720" y2="630" /><line x1="780" y1="0" x2="780" y2="630" />
+    <line x1="840" y1="0" x2="840" y2="630" /><line x1="900" y1="0" x2="900" y2="630" />
+    <line x1="960" y1="0" x2="960" y2="630" /><line x1="1020" y1="0" x2="1020" y2="630" />
+    <line x1="1080" y1="0" x2="1080" y2="630" /><line x1="1140" y1="0" x2="1140" y2="630" />
+    <line x1="1200" y1="0" x2="1200" y2="630" />
+    <line x1="0" y1="0" x2="1200" y2="0" /><line x1="0" y1="60" x2="1200" y2="60" />
+    <line x1="0" y1="120" x2="1200" y2="120" /><line x1="0" y1="180" x2="1200" y2="180" />
+    <line x1="0" y1="240" x2="1200" y2="240" /><line x1="0" y1="300" x2="1200" y2="300" />
+    <line x1="0" y1="360" x2="1200" y2="360" /><line x1="0" y1="420" x2="1200" y2="420" />
+    <line x1="0" y1="480" x2="1200" y2="480" /><line x1="0" y1="540" x2="1200" y2="540" />
+    <line x1="0" y1="600" x2="1200" y2="600" />
+  </g>
+
+  <!-- Audio waveform visualization -->
+  <g transform="translate(600, 420)" opacity="0.35">
+    <!-- Waveform bars - music visualization aesthetic -->
+    <rect x="-280" y="-15" width="4" height="30" rx="2" fill="hsl(263, 80%, 65%)" />
+    <rect x="-264" y="-25" width="4" height="50" rx="2" fill="hsl(263, 80%, 65%)" />
+    <rect x="-248" y="-40" width="4" height="80" rx="2" fill="hsl(268, 82%, 64%)" />
+    <rect x="-232" y="-30" width="4" height="60" rx="2" fill="hsl(268, 82%, 64%)" />
+    <rect x="-216" y="-55" width="4" height="110" rx="2" fill="hsl(273, 83%, 63%)" />
+    <rect x="-200" y="-35" width="4" height="70" rx="2" fill="hsl(273, 83%, 63%)" />
+    <rect x="-184" y="-65" width="4" height="130" rx="2" fill="hsl(278, 84%, 63%)" />
+    <rect x="-168" y="-45" width="4" height="90" rx="2" fill="hsl(278, 84%, 63%)" />
+    <rect x="-152" y="-75" width="4" height="150" rx="2" fill="hsl(283, 85%, 62%)" />
+    <rect x="-136" y="-50" width="4" height="100" rx="2" fill="hsl(283, 85%, 62%)" />
+    <rect x="-120" y="-60" width="4" height="120" rx="2" fill="hsl(288, 85%, 62%)" />
+    <rect x="-104" y="-80" width="4" height="160" rx="2" fill="hsl(288, 85%, 62%)" />
+    <rect x="-88" y="-55" width="4" height="110" rx="2" fill="hsl(290, 85%, 62%)" />
+    <rect x="-72" y="-90" width="4" height="180" rx="2" fill="hsl(293, 85%, 62%)" />
+    <rect x="-56" y="-65" width="4" height="130" rx="2" fill="hsl(293, 85%, 62%)" />
+    <rect x="-40" y="-85" width="4" height="170" rx="2" fill="hsl(295, 85%, 62%)" />
+    <rect x="-24" y="-70" width="4" height="140" rx="2" fill="hsl(295, 85%, 62%)" />
+    <rect x="-8" y="-95" width="4" height="190" rx="2" fill="hsl(295, 85%, 62%)" />
+    <rect x="8" y="-90" width="4" height="180" rx="2" fill="hsl(295, 85%, 62%)" />
+    <rect x="24" y="-75" width="4" height="150" rx="2" fill="hsl(295, 85%, 62%)" />
+    <rect x="40" y="-85" width="4" height="170" rx="2" fill="hsl(293, 85%, 62%)" />
+    <rect x="56" y="-60" width="4" height="120" rx="2" fill="hsl(293, 85%, 62%)" />
+    <rect x="72" y="-80" width="4" height="160" rx="2" fill="hsl(290, 85%, 62%)" />
+    <rect x="88" y="-50" width="4" height="100" rx="2" fill="hsl(288, 85%, 62%)" />
+    <rect x="104" y="-70" width="4" height="140" rx="2" fill="hsl(288, 85%, 62%)" />
+    <rect x="120" y="-45" width="4" height="90" rx="2" fill="hsl(283, 85%, 62%)" />
+    <rect x="136" y="-60" width="4" height="120" rx="2" fill="hsl(283, 85%, 62%)" />
+    <rect x="152" y="-35" width="4" height="70" rx="2" fill="hsl(278, 84%, 63%)" />
+    <rect x="168" y="-55" width="4" height="110" rx="2" fill="hsl(278, 84%, 63%)" />
+    <rect x="184" y="-30" width="4" height="60" rx="2" fill="hsl(273, 83%, 63%)" />
+    <rect x="200" y="-45" width="4" height="90" rx="2" fill="hsl(273, 83%, 63%)" />
+    <rect x="216" y="-25" width="4" height="50" rx="2" fill="hsl(268, 82%, 64%)" />
+    <rect x="232" y="-35" width="4" height="70" rx="2" fill="hsl(268, 82%, 64%)" />
+    <rect x="248" y="-20" width="4" height="40" rx="2" fill="hsl(263, 80%, 65%)" />
+    <rect x="264" y="-10" width="4" height="20" rx="2" fill="hsl(263, 80%, 65%)" />
+    <rect x="280" y="-15" width="4" height="30" rx="2" fill="hsl(263, 80%, 65%)" />
+  </g>
+
+  <!-- Neon accent bar -->
+  <rect x="200" y="310" width="800" height="3" rx="1.5" fill="url(#purpleGlow)" filter="url(#softGlow)" opacity="0.8" />
+  <rect x="200" y="310" width="800" height="2" rx="1" fill="url(#purpleGlow)" />
+
+  <!-- Music note icon -->
+  <g transform="translate(520, 150)" fill="hsl(263, 80%, 65%)" opacity="0.9" filter="url(#neonGlow)">
+    <!-- Double eighth note -->
+    <rect x="0" y="0" width="5" height="60" rx="2" />
+    <rect x="35" y="8" width="5" height="52" rx="2" />
+    <ellipse cx="0" cy="63" rx="12" ry="9" />
+    <ellipse cx="35" cy="63" rx="12" ry="9" />
+    <rect x="0" y="-2" width="40" height="5" rx="2" />
+    <rect x="0" y="6" width="40" height="4" rx="2" />
+  </g>
+
+  <!-- Main title: Lit Studio -->
+  <text x="600" y="230" text-anchor="middle" font-family="'Outfit', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="96" fill="url(#titleGradient)" letter-spacing="-2">
+    Lit Studio
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="290" text-anchor="middle" font-family="'Outfit', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="36" fill="hsl(258, 20%, 70%)" letter-spacing="1">
+    Trade the Music You Love
+  </text>
+
+  <!-- Solana branding -->
+  <g transform="translate(600, 580)">
+    <text x="0" y="0" text-anchor="middle" font-family="'Space Mono', 'Courier New', monospace" font-weight="400" font-size="14" fill="hsl(258, 20%, 40%)" letter-spacing="3">
+      POWERED BY SOLANA
+    </text>
+  </g>
+
+  <!-- Subtle corner accents -->
+  <line x1="40" y1="40" x2="40" y2="80" stroke="hsl(263, 80%, 65%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="40" y1="40" x2="80" y2="40" stroke="hsl(263, 80%, 65%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="1160" y1="40" x2="1160" y2="80" stroke="hsl(263, 80%, 65%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="1160" y1="40" x2="1120" y2="40" stroke="hsl(263, 80%, 65%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="40" y1="590" x2="40" y2="550" stroke="hsl(295, 85%, 62%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="40" y1="590" x2="80" y2="590" stroke="hsl(295, 85%, 62%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="1160" y1="590" x2="1160" y2="550" stroke="hsl(295, 85%, 62%)" stroke-width="1.5" opacity="0.3" />
+  <line x1="1160" y1="590" x2="1120" y2="590" stroke="hsl(295, 85%, 62%)" stroke-width="1.5" opacity="0.3" />
+
+  <!-- Thin border frame -->
+  <rect x="20" y="20" width="1160" height="590" rx="8" fill="none" stroke="hsl(263, 80%, 65%)" stroke-width="0.5" opacity="0.15" />
+</svg>

@@ -1,0 +1,22 @@
+{
+  "name": "Lit Studio",
+  "short_name": "Lit Studio",
+  "description": "Own music on Solana",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#080512",
+  "background_color": "#080512",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://pbs.twimg.com/media/HGJp4-qb0AA4KkT?format=jpg&name=medium",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "screenshots": [],
+  "categories": [
+    "music",
+    "entertainment"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "policyAdditions": {
+    "airdropRequests/$requestId": {
+      "description": "Server-initiated token airdrops from vault to users (e.g., Shopify purchases). Hook executes token transfer on document creation.",
+      "onchain": true,
+      "isPassthrough": true,
+      "fields": {
+        "recipient": "Address!",
+        "songId": "String!",
+        "amt": "UInt!",
+        "source": "String!",
+        "status": "String!"
+      },
+      "rules": {
+        "read": "true",
+        "create": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+        "update": "@user.address == @constants.PROJECT_VAULT_ADDRESS",
+        "delete": "false"
+      },
+      "hooks": {
+        "onchain": {
+          "create": "@TokenPlugin.transfer(@constants.PROJECT_VAULT_ADDRESS, @newData.recipient, @TokenPlugin.getTokenMintAddress(@newData.songId, get(/songs/@newData.songId).name, get(/songs/@newData.songId).symbol), @newData.amt)"
+        }
+      },
+      "operationDetails": {
+        "read": "Public read for auditability.",
+        "create": "Only PROJECT_VAULT_ADDRESS can create airdrop requests. Hook transfers tokens atomically on creation.",
+        "update": "Only PROJECT_VAULT_ADDRESS can update status after completion/failure."
+      }
+    }
+  },
+  "notes": "Use this collection for server-initiated token transfers (e.g., Shopify webhook processing). The vault must hold sufficient tokens. Create document with status='pending', hook executes transfer. Backend should set status='completed' or 'failed' after processing."
+}

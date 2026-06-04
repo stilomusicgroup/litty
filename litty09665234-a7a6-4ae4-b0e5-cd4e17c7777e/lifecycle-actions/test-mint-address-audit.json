@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "name": "Mint address audit — validate mintAddress field pattern on songs",
+  "actors": {
+    "vault": "9LLTjsWhYJBxFgca43MQtrLLsPcxWMR86NoxAHGsBUCk",
+    "admin": "48mBBpd7Y3GMrVhSHmBC3FuvQHGetuP9GDakMZ7QSDyc",
+    "user": "HuEbCj5rUYnNwsDXf1TBzUnZw27U4V2pxCHDG2tVB84E"
+  },
+  "steps": [
+    { "op": "mock", "pluginCall": "@PumpFunPlugin.createToken", "returns": true },
+    { "op": "mock", "pluginCall": "@TokenPlugin.transfer", "returns": true },
+
+    { "op": "as", "who": "vault" },
+    { "op": "set", "path": "songs/test_mint_audit_001", "data": { "name": "Audit Song One", "symbol": "AUD1", "uri": "https://example.com/audit1", "creator": "$vault", "pairCurrency": "SOL", "mintAddress": "MintAddr111111111111111111111111111111111111" } },
+    { "op": "expect", "expr": "get(/songs/test_mint_audit_001).mintAddress == 'MintAddr111111111111111111111111111111111111'" },
+
+    { "op": "as", "who": "vault" },
+    { "op": "set", "path": "songs/test_mint_audit_001/airdrops/airdrop_audit_001", "data": { "recipient": "$user", "amount": 1000 } },
+
+    { "op": "as", "who": "vault" },
+    { "op": "set", "path": "songs/test_mint_audit_001", "data": { "mintAddress": null } },
+    { "op": "expect", "expr": "get(/songs/test_mint_audit_001).mintAddress == null" },
+
+    { "op": "as", "who": "user" },
+    { "op": "set", "path": "songs/test_mint_audit_002", "data": { "name": "Unauthorized Song", "symbol": "UNAU", "uri": "https://example.com/unau", "creator": "$vault", "pairCurrency": "SOL", "mintAddress": "FakeMint11111111111111111111111111111111111" }, "shouldFail": true },
+
+    { "op": "as", "who": "user" },
+    { "op": "set", "path": "songs/test_mint_audit_001", "data": { "name": "Hacked Song" }, "shouldFail": true }
+  ]
+}

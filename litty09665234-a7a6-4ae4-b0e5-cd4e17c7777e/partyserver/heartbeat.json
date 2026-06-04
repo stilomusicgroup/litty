@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "name": "reconcile-stuck-purchases",
+      "cron": "*/5 * * * *",
+      "handler": "./src/heartbeat/reconcile-stuck-purchases.ts",
+      "enabled": true,
+      "description": "Every 5 minutes, scan for stuck pack purchases and retry fulfillment if the song now exists"
+    },
+    {
+      "name": "backfill-song-creators",
+      "cron": "0 0 1 1 *",
+      "handler": "./src/heartbeat/backfill-song-creators.ts",
+      "enabled": false,
+      "description": "One-shot: backfill creator wallet on songs where it is null/empty, resolved from users collection via songDetails.artistEmail"
+    },
+    {
+      "name": "prune-processed-signatures",
+      "cron": "0 0 * * 1",
+      "handler": "./src/heartbeat/prune-processed-signatures.ts",
+      "enabled": true,
+      "description": "Weekly (Monday midnight UTC): delete processedSolSignatures entries older than 90 days to keep the anti-replay audit log bounded"
+    },
+    {
+      "name": "expire-apple-pay-reservations",
+      "cron": "*/30 * * * *",
+      "handler": "./src/heartbeat/expire-apple-pay-reservations.ts",
+      "enabled": true,
+      "description": "Every 30 minutes: expire Apple Pay checkout reservations older than 45 minutes to free daily budget headroom for abandoned checkouts"
+    }
+  ]
+}

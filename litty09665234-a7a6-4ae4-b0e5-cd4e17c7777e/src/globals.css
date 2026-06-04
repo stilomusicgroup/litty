@@ -1,0 +1,98 @@
+/*
+ * V3 Theme System — Canonical Design System
+ * Colors are applied at runtime from src/theme.ts via the ThemeProvider.
+ * DO NOT edit color values here — edit src/theme.ts instead.
+ */
+
+:root {
+  /* Canonical grayscale placeholders — overridden at runtime by ThemeProvider */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 135 100% 50%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 53%;
+    --muted-foreground: 0 0% 33%;
+
+    --accent: 135 100% 50%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 100% / 0.08;
+    --input: 0 0% 7%;
+    --ring: 135 100% 50%;
+
+    --link: 135 100% 50%;
+    --link-hover: 135 100% 50%;
+
+    --button: 0 0% 10%;
+    --button-foreground: 0 0% 100%;
+    --button-border: 0 0% 100% / 0.12;
+    --button-hover: 135 100% 50%;
+    --button-hover-foreground: 0 0% 0%;
+    --button-hover-border: 135 100% 50%;
+    --button-ring: 135 100% 50%;
+
+    --chart-1: 135 100% 50%;
+    --chart-2: 135 100% 50%;
+    --chart-3: 0 100% 60%;
+    --chart-4: 0 0% 100%;
+    --chart-5: 0 0% 53%;
+
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 135 100% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100% / 0.08;
+    --sidebar-ring: 135 100% 50%;
+
+  --radius: 1rem;
+}
+
+html,
+body {
+  margin: 0;
+  overflow-x: clip;
+  max-width: 100%;
+  width: 100%;
+  scroll-behavior: smooth;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Edge-to-edge utility — 16px side padding everywhere (8pt grid) */
+.edge-to-edge {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Allow horizontal scroll containers to overflow without clipping */
+.scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
